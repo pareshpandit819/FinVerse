@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "../lib/utils.js";
 
 interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
-  value?: number; // 0–100
+  value?: number;
   max?: number;
 }
 
@@ -16,11 +16,11 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
         aria-valuemin={0}
         aria-valuemax={max}
         aria-valuenow={value}
-        className={cn("relative h-2 w-full overflow-hidden rounded-full bg-secondary", className)}
+        className={cn("relative h-2 w-full overflow-hidden rounded-full bg-sky-100", className)}
         {...props}
       >
         <div
-          className="h-full bg-primary transition-all duration-300"
+          className="h-full rounded-full bg-sky-500 transition-all duration-500 ease-out"
           style={{ width: `${pct}%` }}
         />
       </div>
