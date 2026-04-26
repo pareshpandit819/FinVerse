@@ -17,27 +17,17 @@ export function buildCsp(nonce: string): string {
       "'self'",
       `'nonce-${nonce}'`,
       "'strict-dynamic'",
-      // Allow Plaid Link SDK (loaded via script tag)
-      "https://cdn.plaid.com",
+      ...(process.env["NODE_ENV"] !== "production" ? ["'unsafe-eval'"] : []),
     ],
     "style-src": ["'self'", "'unsafe-inline'"], // Tailwind inlines styles
     "img-src": ["'self'", "data:", "https:"],
     "font-src": ["'self'", "https://fonts.gstatic.com"],
     "connect-src": [
       "'self'",
-      // Plaid Link
-      "https://cdn.plaid.com",
-      "https://production.plaid.com",
-      "https://sandbox.plaid.com",
-      "https://development.plaid.com",
       // Auth.js
       "https://accounts.google.com",
     ],
-    "frame-src": [
-      "'self'",
-      // Plaid Link opens an iframe
-      "https://cdn.plaid.com",
-    ],
+    "frame-src": ["'self'"],
     "frame-ancestors": ["'none'"],
     "base-uri": ["'self'"],
     "form-action": ["'self'"],

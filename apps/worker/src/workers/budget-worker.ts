@@ -1,7 +1,7 @@
 import { Worker, type Job } from "bullmq";
 import { z } from "zod";
 import { prisma } from "@repo/db/client";
-import { mapPlaidCategory } from "@repo/shared/categorize";
+import { mapCategory } from "@repo/shared/categorize";
 import { logger } from "@repo/shared/logger";
 import { redis } from "../lib/redis.js";
 
@@ -46,13 +46,12 @@ export function createBudgetWorker(): Worker {
           pending: false,
           amount: { gt: 0n },
         },
-        select: { amount: true, plaidCategories: true, customCategory: true },
+        select: { amount: true, name: true, customCategory: true },
       });
 
-      // Aggregate spending by budget category
       const spending = new Map<string, bigint>();
       for (const txn of transactions) {
-        const cat = txn.customCategory ?? mapPlaidCategory(txn.plaidCategories);
+        const cat = txn.customCategory ?? mapCategory(txn.name);
         spending.set(cat, (spending.get(cat) ?? 0n) + txn.amount);
       }
 

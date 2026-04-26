@@ -17,7 +17,7 @@ import type {
 export async function getAccountSummary(
   organizationId: string
 ): Promise<AccountSummary> {
-  const accounts = await prisma.plaidAccount.findMany({
+  const accounts = await prisma.financialAccount.findMany({
     where: { organizationId },
     select: { type: true, balanceCurrent: true },
   });
@@ -34,7 +34,7 @@ export async function getAccountSummary(
     byType[acct.type]!.count++;
     byType[acct.type]!.totalBalanceCents += balance;
 
-    if (acct.type === "credit" || acct.type === "loan") {
+    if (acct.type === "credit_card" || acct.type === "loan") {
       totalLiabilities += Math.abs(balance);
     } else {
       totalAssets += Math.max(0, balance);
@@ -61,7 +61,7 @@ export async function getSpendingByCategory(
       pending: false,
       amount: { gt: 0n },
     },
-    select: { amount: true, customCategory: true, plaidCategories: true },
+    select: { amount: true, customCategory: true },
   });
 
   const totals = new Map<string, { total: bigint; count: number }>();

@@ -23,12 +23,11 @@ export function createNetWorthWorker(): Worker {
       const { organizationId, userId } = result.data;
       const log = logger.child({ jobId: job.id, organizationId });
 
-      const accounts = await prisma.plaidAccount.findMany({
+      const accounts = await prisma.financialAccount.findMany({
         where: { organizationId },
         select: {
           id: true,
           type: true,
-          subtype: true,
           balanceCurrent: true,
           isoCurrencyCode: true,
         },
@@ -39,7 +38,6 @@ export function createNetWorthWorker(): Worker {
         select: { id: true, institutionValue: true, isoCurrencyCode: true },
       });
 
-      // Credit/loan liabilities from the Liability table (more authoritative than account balance)
       const liabilities = await prisma.liability.findMany({
         where: { organizationId },
         select: {
@@ -51,7 +49,7 @@ export function createNetWorthWorker(): Worker {
       const accountBalances: AccountBalance[] = accounts.map((a) => ({
         id: a.id,
         type: a.type as AccountBalance["type"],
-        subtype: a.subtype ?? "",
+        subtype: "",
         balanceCurrent: a.balanceCurrent,
         isoCurrencyCode: a.isoCurrencyCode,
       }));

@@ -4,19 +4,28 @@ import { Redis } from "ioredis";
 const redisUrl = process.env["REDIS_URL"];
 if (!redisUrl) throw new Error("REDIS_URL environment variable is required");
 
-// Singleton Redis connection for BullMQ producers in the web app
 const connection = new Redis(redisUrl, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
 });
 
-export const syncQueue = new Queue("plaid.sync", {
+export const netWorthQueue = new Queue("net-worth.snapshot", {
+  connection,
+  defaultJobOptions: {
+    attempts: 2,
+    backoff: { type: "exponential", delay: 3000 },
+    removeOnComplete: { count: 200 },
+    removeOnFail: { count: 100 },
+  },
+});
+
+export const budgetQueue = new Queue("budget.aggregate", {
   connection,
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: "exponential", delay: 5000 },
-    removeOnComplete: { count: 100 },
-    removeOnFail: { count: 500 },
+    removeOnComplete: { count: 50 },
+    removeOnFail: { count: 100 },
   },
 });
 

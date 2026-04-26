@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { plaidAmountToCents, centsToDollars, formatCurrency, percentageBps, bigintReplacer, bigintReviver } from "../money.js";
+import { toCents, centsToDollars, formatCurrency, percentageBps, bigintReplacer, bigintReviver } from "../money.js";
 
-describe("plaidAmountToCents", () => {
+describe("toCents", () => {
   it("converts 12.34 to 1234n", () => {
-    expect(plaidAmountToCents(12.34)).toBe(1234n);
+    expect(toCents(12.34)).toBe(1234n);
   });
 
-  it("handles negative Plaid amounts (debits) as positive cents", () => {
-    expect(plaidAmountToCents(-45.67)).toBe(4567n);
+  it("handles negative amounts as positive cents", () => {
+    expect(toCents(-45.67)).toBe(4567n);
   });
 
   it("rounds floating point correctly", () => {
-    expect(plaidAmountToCents(0.1 + 0.2)).toBe(30n);
+    expect(toCents(0.1 + 0.2)).toBe(30n);
   });
 });
 

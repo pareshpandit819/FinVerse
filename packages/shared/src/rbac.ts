@@ -6,13 +6,14 @@ export type Permission =
   | "member.invite"
   | "member.remove"
   | "member.role.update"
-  | "plaid.link"
-  | "plaid.unlink.any"
-  | "plaid.unlink.own"
   | "account.read.any"
   | "account.read.own"
+  | "account.write.any"
+  | "account.write.own"
   | "transaction.read.any"
   | "transaction.read.own"
+  | "transaction.write.any"
+  | "transaction.write.own"
   | "goal.write.any"
   | "goal.write.own"
   | "budget.write.any"
@@ -29,13 +30,14 @@ const PERMISSIONS: Record<Role, Set<Permission>> = {
     "member.invite",
     "member.remove",
     "member.role.update",
-    "plaid.link",
-    "plaid.unlink.any",
-    "plaid.unlink.own",
     "account.read.any",
     "account.read.own",
+    "account.write.any",
+    "account.write.own",
     "transaction.read.any",
     "transaction.read.own",
+    "transaction.write.any",
+    "transaction.write.own",
     "goal.write.any",
     "goal.write.own",
     "budget.write.any",
@@ -50,13 +52,14 @@ const PERMISSIONS: Record<Role, Set<Permission>> = {
     "member.invite",
     "member.remove",
     "member.role.update",
-    "plaid.link",
-    "plaid.unlink.any",
-    "plaid.unlink.own",
     "account.read.any",
     "account.read.own",
+    "account.write.any",
+    "account.write.own",
     "transaction.read.any",
     "transaction.read.own",
+    "transaction.write.any",
+    "transaction.write.own",
     "goal.write.any",
     "goal.write.own",
     "budget.write.any",
@@ -67,10 +70,10 @@ const PERMISSIONS: Record<Role, Set<Permission>> = {
     "settings.mfa",
   ]),
   MEMBER: new Set([
-    "plaid.link",
-    "plaid.unlink.own",
     "account.read.own",
+    "account.write.own",
     "transaction.read.own",
+    "transaction.write.own",
     "goal.write.own",
     "budget.write.own",
     "insight.read.own",
@@ -92,7 +95,7 @@ export function getRolePermissions(role: Role): Set<Permission> {
 }
 
 /** Returns true if the role can act on any member's resources (not just their own). */
-export function canActOnAny(role: Role, resource: "account" | "transaction" | "goal" | "budget" | "insight" | "plaid"): boolean {
-  const anyPerm = `${resource}.${resource === "plaid" ? "unlink" : "read"}.any` as Permission;
+export function canActOnAny(role: Role, resource: "account" | "transaction" | "goal" | "budget" | "insight"): boolean {
+  const anyPerm = `${resource}.read.any` as Permission;
   return hasPermission(role, anyPerm);
 }
