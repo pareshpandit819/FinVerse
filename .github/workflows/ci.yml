@@ -1,0 +1,179 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9"
+
+jobs:
+  lint-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm turbo lint
+
+      - name: Typecheck
+        run: pnpm turbo typecheck
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm turbo test -- --coverage
+        env:
+          NODE_ENV: test
+          PLAID_TOKEN_ENCRYPTION_KEY: ${{ secrets.TEST_PLAID_TOKEN_ENCRYPTION_KEY || '0000000000000000000000000000000000000000000000000000000000000000' }}
+          MFA_SECRET_ENCRYPTION_KEY: ${{ secrets.TEST_MFA_SECRET_ENCRYPTION_KEY || '1111111111111111111111111111111111111111111111111111111111111111' }}
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./packages/shared/coverage/coverage-final.json
+          flags: unit
+
+  test-e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: efd_test
+          POSTGRES_PASSWORD: efd_test_pass
+          POSTGRES_DB: efd_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @repo/web exec playwright install --with-deps chromium
+
+      - name: Build
+        run: pnpm turbo build
+        env:
+          DATABASE_URL: postgresql://efd_test:efd_test_pass@localhost:5432/efd_test
+          REDIS_URL: redis://localhost:6379
+          AUTH_SECRET: test-secret-32-chars-minimum-here
+          NEXTAUTH_URL: http://localhost:3000
+          PLAID_TOKEN_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+          MFA_SECRET_ENCRYPTION_KEY: "1111111111111111111111111111111111111111111111111111111111111111"
+
+      - name: Run migrations
+        run: pnpm --filter @repo/db db:migrate:deploy
+        env:
+          DATABASE_URL: postgresql://efd_test:efd_test_pass@localhost:5432/efd_test
+
+      - name: Run E2E tests
+        run: pnpm turbo test:e2e
+        env:
+          DATABASE_URL: postgresql://efd_test:efd_test_pass@localhost:5432/efd_test
+          REDIS_URL: redis://localhost:6379
+          AUTH_SECRET: test-secret-32-chars-minimum-here
+          NEXTAUTH_URL: http://localhost:3000
+          PLAID_TOKEN_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+          MFA_SECRET_ENCRYPTION_KEY: "1111111111111111111111111111111111111111111111111111111111111111"
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: [lint-typecheck, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm turbo build
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          AUTH_SECRET: placeholder-secret-32chars-minimum
+          NEXTAUTH_URL: http://localhost:3000
+          PLAID_TOKEN_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+          MFA_SECRET_ENCRYPTION_KEY: "1111111111111111111111111111111111111111111111111111111111111111"

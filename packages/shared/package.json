@@ -1,0 +1,39 @@
+{
+  "name": "@repo/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./crypto": "./src/crypto.ts",
+    "./money": "./src/money.ts",
+    "./net-worth": "./src/net-worth.ts",
+    "./budget": "./src/budget.ts",
+    "./goal": "./src/goal.ts",
+    "./rbac": "./src/rbac.ts",
+    "./ai-tools": "./src/ai-tools/index.ts",
+    "./schemas": "./src/schemas/index.ts",
+    "./logger": "./src/logger.ts",
+    "./totp": "./src/totp.ts",
+    "./categorize": "./src/categorize.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --max-warnings 0",
+    "lint:fix": "eslint src --fix",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "otpauth": "^9.3.3",
+    "pino": "^9.2.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@repo/config": "workspace:*",
+    "@types/node": "^20.14.9",
+    "@vitest/coverage-v8": "^2.0.2",
+    "fast-check": "^3.20.0",
+    "typescript": "^5.5.2",
+    "vitest": "^2.0.2"
+  }
+}

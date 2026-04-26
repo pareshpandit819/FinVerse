@@ -1,0 +1,49 @@
+# Environment
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+.next/
+out/
+build/
+
+# TypeScript
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Test coverage
+coverage/
+
+# Logs
+*.log
+pino*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Prisma
+prisma/generated/
+
+# Playwright
+test-results/
+playwright-report/
+
+# pnpm
+.pnpm-store/
