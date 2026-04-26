@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
+const ASSET_TYPES = new Set(["checking", "savings", "investment"]);
+
 export default async function DashboardPage() {
   const session = await auth();
   const org = await getActiveOrg();
@@ -16,7 +18,7 @@ export default async function DashboardPage() {
       where: { organizationId: org.id },
       orderBy: { snapshotDate: "desc" },
     }),
-    prisma.plaidAccount.findMany({
+    prisma.financialAccount.findMany({
       where: { organizationId: org.id },
       orderBy: { type: "asc" },
     }),
@@ -44,7 +46,7 @@ export default async function DashboardPage() {
     : null;
 
   const totalAccounts = accounts.length;
-  const assetAccounts = accounts.filter((a) => a.type === "depository" || a.type === "investment");
+  const assetAccounts = accounts.filter((a) => ASSET_TYPES.has(a.type));
   const totalBalance = assetAccounts.reduce((s, a) => s + a.balanceCurrent, 0n);
 
   return (
@@ -79,7 +81,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCents(totalBalance)}</div>
-            <p className="mt-1 text-xs text-muted-foreground">{totalAccounts} connected accounts</p>
+            <p className="mt-1 text-xs text-muted-foreground">{totalAccounts} account{totalAccounts !== 1 ? "s" : ""}</p>
           </CardContent>
         </Card>
 
@@ -95,7 +97,7 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Last Synced</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Last Updated</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -113,7 +115,7 @@ export default async function DashboardPage() {
         </CardHeader>
         <CardContent>
           {recentTransactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No transactions yet. Connect an account to get started.</p>
+            <p className="text-sm text-muted-foreground">No transactions yet. Add an account and log your first transaction.</p>
           ) : (
             <div className="space-y-3">
               {recentTransactions.map((txn) => (

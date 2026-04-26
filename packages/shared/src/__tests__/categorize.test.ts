@@ -1,45 +1,46 @@
 import { describe, it, expect } from "vitest";
-import { mapPlaidCategory } from "../categorize.js";
+import { mapCategory } from "../categorize.js";
 
-describe("mapPlaidCategory", () => {
-  it("maps food categories", () => {
-    expect(mapPlaidCategory(["Food and Drink", "Restaurants"])).toBe("Food & Dining");
-    expect(mapPlaidCategory(["Shops", "Grocery Stores"])).toBe("Food & Dining");
+describe("mapCategory", () => {
+  it("maps food-related names", () => {
+    expect(mapCategory("Whole Foods grocery store")).toBe("Food & Dining");
+    expect(mapCategory("Starbucks coffee")).toBe("Food & Dining");
+    expect(mapCategory("Chipotle restaurant")).toBe("Food & Dining");
   });
 
   it("maps travel and transport", () => {
-    expect(mapPlaidCategory(["Travel", "Airlines and Aviation Services"])).toBe("Travel & Transport");
-    expect(mapPlaidCategory(["Travel", "Gas Stations"])).toBe("Travel & Transport");
+    expect(mapCategory("Shell gas station")).toBe("Travel & Transport");
+    expect(mapCategory("Uber ride")).toBe("Travel & Transport");
+    expect(mapCategory("Delta airline flight")).toBe("Travel & Transport");
   });
 
   it("maps entertainment", () => {
-    expect(mapPlaidCategory(["Recreation", "Streaming Services"])).toBe("Entertainment");
+    expect(mapCategory("Netflix streaming")).toBe("Entertainment");
+    expect(mapCategory("Spotify music")).toBe("Entertainment");
   });
 
   it("maps subscriptions/software", () => {
-    expect(mapPlaidCategory(["Service", "Subscription"])).toBe("Subscriptions");
+    expect(mapCategory("Adobe subscription")).toBe("Subscriptions");
+    expect(mapCategory("GitHub SaaS")).toBe("Subscriptions");
   });
 
   it("maps health", () => {
-    expect(mapPlaidCategory(["Medical", "Pharmacy"])).toBe("Health & Wellness");
+    expect(mapCategory("CVS pharmacy")).toBe("Health & Wellness");
+    expect(mapCategory("Planet Fitness gym")).toBe("Health & Wellness");
   });
 
   it("maps shopping", () => {
-    expect(mapPlaidCategory(["Shops", "Clothing and Accessories"])).toBe("Shopping");
+    expect(mapCategory("Amazon retail shopping")).toBe("Shopping");
+    expect(mapCategory("Zara clothing store")).toBe("Shopping");
   });
 
   it("maps utilities/bills", () => {
-    expect(mapPlaidCategory(["Service", "Utilities"])).toBe("Bills & Utilities");
+    expect(mapCategory("AT&T phone bill")).toBe("Bills & Utilities");
+    expect(mapCategory("PG&E electric utilities")).toBe("Bills & Utilities");
   });
 
-  it("falls back to Other for unknown categories", () => {
-    expect(mapPlaidCategory(["Unknown", "Miscellaneous"])).toBe("Other");
-    expect(mapPlaidCategory([])).toBe("Other");
-  });
-
-  it("uses first matching category in the list", () => {
-    // "Food" matches before "Travel" — first matching item wins
-    const result = mapPlaidCategory(["Coffee Shop", "Airlines"]);
-    expect(result).toBe("Food & Dining");
+  it("falls back to Other for unknown names", () => {
+    expect(mapCategory("Miscellaneous charge")).toBe("Other");
+    expect(mapCategory("")).toBe("Other");
   });
 });

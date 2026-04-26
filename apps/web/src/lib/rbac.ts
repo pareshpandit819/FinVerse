@@ -85,7 +85,7 @@ export async function requirePermission(
 
 /**
  * Like requirePermission, but also asserts MFA has been verified.
- * Use for sensitive operations (Plaid linking, member management, etc.)
+ * Use for sensitive operations (account management, member management, etc.)
  */
 export async function requirePermissionWithMfa(
   organizationId: string,

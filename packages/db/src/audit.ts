@@ -1,9 +1,8 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 
 export type AuditAction =
-  | "plaid_item.created"
-  | "plaid_item.deleted"
-  | "plaid_item.relink_required"
+  | "account.created"
+  | "account.deleted"
   | "membership.created"
   | "membership.updated"
   | "membership.removed"
@@ -18,7 +17,7 @@ export type AuditAction =
   | "insight.feedback";
 
 const REDACTED = "[REDACTED]";
-const SENSITIVE_FIELDS = new Set(["encryptedAccessToken", "encryptedSecret", "sessionToken"]);
+const SENSITIVE_FIELDS = new Set(["encryptedSecret", "sessionToken"]);
 
 function redactSensitive(obj: Record<string, unknown> | null | undefined): Record<string, unknown> | null {
   if (!obj) return null;

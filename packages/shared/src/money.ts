@@ -1,9 +1,5 @@
-/**
- * Converts a Plaid float amount to BigInt cents.
- * Plaid returns amounts as floats (e.g., 12.34). We immediately convert
- * to minor units to avoid floating-point arithmetic in business logic.
- */
-export function plaidAmountToCents(amount: number): bigint {
+/** Converts a decimal dollar amount to BigInt cents (e.g. 12.34 → 1234n). */
+export function toCents(amount: number): bigint {
   return BigInt(Math.round(Math.abs(amount) * 100));
 }
 

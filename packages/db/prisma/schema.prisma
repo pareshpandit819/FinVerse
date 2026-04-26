@@ -16,7 +16,7 @@ datasource db {
 
 model Account {
   id                String  @id @default(cuid())
-  userId            String  @map("user_id")
+  userId            String  @map("user_id") @db.Uuid
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
@@ -54,13 +54,13 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  memberships       Membership[]
-  plaidItems        PlaidItem[]
-  auditLogs         AuditLog[]
-  netWorthSnapshots NetWorthSnapshot[]
-  goals             Goal[]
-  budgets           Budget[]
-  insights          Insight[]
+  memberships          Membership[]
+  financialAccounts    FinancialAccount[]
+  auditLogs            AuditLog[]
+  netWorthSnapshots    NetWorthSnapshot[]
+  goals                Goal[]
+  budgets              Budget[]
+  insights             Insight[]
 
   @@map("organizations")
 }
@@ -69,21 +69,22 @@ model User {
   id              String    @id @default(uuid()) @db.Uuid
   email           String    @unique
   name            String?
+  password        String?
   avatarUrl       String?   @map("avatar_url")
   emailVerifiedAt DateTime? @map("email_verified_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  accounts          Account[]
-  sessions          Session[]
-  memberships       Membership[]
-  mfaSecrets        MfaSecret[]
-  auditLogs         AuditLog[]
-  plaidItems        PlaidItem[]
-  netWorthSnapshots NetWorthSnapshot[]
-  goals             Goal[]
-  budgets           Budget[]
-  insights          Insight[]
+  accounts             Account[]
+  sessions             Session[]
+  memberships          Membership[]
+  mfaSecrets           MfaSecret[]
+  auditLogs            AuditLog[]
+  financialAccounts    FinancialAccount[]
+  netWorthSnapshots    NetWorthSnapshot[]
+  goals                Goal[]
+  budgets              Budget[]
+  insights             Insight[]
 
   @@map("users")
 }
@@ -156,92 +157,60 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-model PlaidItem {
-  id                   String    @id @default(uuid()) @db.Uuid
-  organizationId       String    @map("organization_id") @db.Uuid
-  userId               String    @map("user_id") @db.Uuid
-  encryptedAccessToken String    @map("encrypted_access_token")
-  itemId               String    @unique @map("item_id")
-  institutionId        String    @map("institution_id")
-  institutionName      String    @map("institution_name")
-  status               String    @default("active")
-  consentExpiresAt     DateTime? @map("consent_expires_at")
-  lastSyncedAt         DateTime? @map("last_synced_at")
-  transactionCursor    String?   @map("transaction_cursor")
-  createdAt            DateTime  @default(now()) @map("created_at")
-  updatedAt            DateTime  @updatedAt @map("updated_at")
+model FinancialAccount {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  name            String
+  type            String
+  balanceCurrent  BigInt   @default(0) @map("balance_current")
+  isoCurrencyCode String   @default("USD") @map("iso_currency_code")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accounts     PlaidAccount[]
-
-  @@index([organizationId])
-  @@index([userId])
-  @@map("plaid_items")
-}
-
-model PlaidAccount {
-  id               String   @id @default(uuid()) @db.Uuid
-  plaidItemId      String   @map("plaid_item_id") @db.Uuid
-  organizationId   String   @map("organization_id") @db.Uuid
-  accountId        String   @unique @map("account_id")
-  name             String
-  officialName     String?  @map("official_name")
-  type             String
-  subtype          String?
-  mask             String?
-  balanceCurrent   BigInt   @default(0) @map("balance_current")
-  balanceAvailable BigInt?  @map("balance_available")
-  balanceLimit     BigInt?  @map("balance_limit")
-  isoCurrencyCode  String   @default("USD") @map("iso_currency_code")
-  updatedAt        DateTime @updatedAt @map("updated_at")
-
-  plaidItem    PlaidItem     @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
   transactions Transaction[]
   holdings     Holding[]
   liability    Liability?
 
   @@index([organizationId])
-  @@index([plaidItemId])
-  @@map("plaid_accounts")
+  @@index([userId])
+  @@map("financial_accounts")
 }
 
 model Transaction {
-  id              String   @id @default(uuid()) @db.Uuid
-  plaidAccountId  String   @map("plaid_account_id") @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  transactionId   String   @unique @map("transaction_id")
-  amount          BigInt
-  isoCurrencyCode String   @default("USD") @map("iso_currency_code")
-  date            DateTime @db.Date
-  name            String
-  merchantName    String?  @map("merchant_name")
-  paymentChannel  String?  @map("payment_channel")
-  plaidCategories String[] @map("plaid_categories")
-  customCategory  String?  @map("custom_category")
-  pending         Boolean  @default(false)
-  metadata        Json?
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id                 String   @id @default(uuid()) @db.Uuid
+  financialAccountId String   @map("financial_account_id") @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  amount             BigInt
+  isoCurrencyCode    String   @default("USD") @map("iso_currency_code")
+  date               DateTime @db.Date
+  name               String
+  merchantName       String?  @map("merchant_name")
+  customCategory     String?  @map("custom_category")
+  pending            Boolean  @default(false)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
-  account PlaidAccount @relation(fields: [plaidAccountId], references: [id], onDelete: Cascade)
+  account FinancialAccount @relation(fields: [financialAccountId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
-  @@index([plaidAccountId])
+  @@index([financialAccountId])
   @@index([date])
   @@map("transactions")
 }
 
 model Security {
-  id               String   @id @default(uuid()) @db.Uuid
-  plaidSecurityId  String   @unique @map("plaid_security_id")
-  name             String
-  tickerSymbol     String?  @map("ticker_symbol")
-  type             String
-  isoCurrencyCode  String   @default("USD") @map("iso_currency_code")
-  closePrice       BigInt?  @map("close_price")
-  closePriceAsOf   DateTime? @map("close_price_as_of") @db.Date
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id              String    @id @default(uuid()) @db.Uuid
+  securityId      String    @unique @map("security_id")
+  name            String
+  tickerSymbol    String?   @map("ticker_symbol")
+  type            String
+  isoCurrencyCode String    @default("USD") @map("iso_currency_code")
+  closePrice      BigInt?   @map("close_price")
+  closePriceAsOf  DateTime? @map("close_price_as_of") @db.Date
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   holdings Holding[]
 
@@ -249,37 +218,33 @@ model Security {
 }
 
 model Holding {
-  id              String   @id @default(uuid()) @db.Uuid
-  plaidAccountId  String   @map("plaid_account_id") @db.Uuid
-  securityId      String   @map("security_id") @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  quantity        Decimal  @db.Decimal(20, 8)
-  institutionValue BigInt  @map("institution_value")
-  costBasis       BigInt?  @map("cost_basis")
-  isoCurrencyCode String   @default("USD") @map("iso_currency_code")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id                 String   @id @default(uuid()) @db.Uuid
+  financialAccountId String   @map("financial_account_id") @db.Uuid
+  securityId         String   @map("security_id") @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  quantity           Decimal  @db.Decimal(20, 8)
+  institutionValue   BigInt   @map("institution_value")
+  costBasis          BigInt?  @map("cost_basis")
+  isoCurrencyCode    String   @default("USD") @map("iso_currency_code")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
-  account  PlaidAccount @relation(fields: [plaidAccountId], references: [id], onDelete: Cascade)
-  security Security     @relation(fields: [securityId], references: [id])
+  account  FinancialAccount @relation(fields: [financialAccountId], references: [id], onDelete: Cascade)
+  security Security         @relation(fields: [securityId], references: [id])
 
-  @@unique([plaidAccountId, securityId])
+  @@unique([financialAccountId, securityId])
   @@index([organizationId])
   @@map("holdings")
 }
 
 model Liability {
-  id                   String    @id @default(uuid()) @db.Uuid
-  plaidAccountId       String    @unique @map("plaid_account_id") @db.Uuid
-  organizationId       String    @map("organization_id") @db.Uuid
-  type                 String
-  lastPaymentAmount    BigInt?   @map("last_payment_amount")
-  lastPaymentDate      DateTime? @map("last_payment_date") @db.Date
-  minimumPaymentAmount BigInt?   @map("minimum_payment_amount")
-  nextPaymentDueDate   DateTime? @map("next_payment_due_date") @db.Date
-  metadata             Json?
-  updatedAt            DateTime  @updatedAt @map("updated_at")
+  id                 String   @id @default(uuid()) @db.Uuid
+  financialAccountId String   @unique @map("financial_account_id") @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  type               String
+  metadata           Json?
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
-  account PlaidAccount @relation(fields: [plaidAccountId], references: [id], onDelete: Cascade)
+  account FinancialAccount @relation(fields: [financialAccountId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@map("liabilities")

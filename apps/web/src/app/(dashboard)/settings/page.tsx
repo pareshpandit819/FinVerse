@@ -122,9 +122,9 @@ export default async function SettingsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Key className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Connected Services</CardTitle>
+            <CardTitle>Accounts</CardTitle>
           </div>
-          <CardDescription>Plaid integration and data sync status</CardDescription>
+          <CardDescription>Manage your manually entered financial accounts</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">

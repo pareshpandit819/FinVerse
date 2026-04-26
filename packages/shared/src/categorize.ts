@@ -1,11 +1,3 @@
-/**
- * Maps Plaid's hierarchical category array to the budget category labels
- * used in BudgetCategory.category. Checked top-down against the first
- * (most-specific) element, then the second (broad) element.
- *
- * Plaid docs: https://plaid.com/docs/api/products/transactions/#transactions-get-response-transactions-category
- */
-
 const CATEGORY_MAP: Array<[pattern: RegExp, budgetCategory: string]> = [
   [/food|restaurant|grocery|supermarket|coffee|café|cafe/i, "Food & Dining"],
   [/transport|uber|lyft|taxi|gas station|fuel|parking|toll|transit|airline|flight|hotel|lodging/i, "Travel & Transport"],
@@ -18,15 +10,10 @@ const CATEGORY_MAP: Array<[pattern: RegExp, budgetCategory: string]> = [
   [/transfer|payment|payroll|deposit|withdrawal/i, "Transfers"],
 ];
 
-/**
- * Returns a normalized budget category label for a Plaid transaction.
- * Falls back to "Other" when no pattern matches.
- */
-export function mapPlaidCategory(plaidCategories: string[]): string {
-  for (const plaidCat of plaidCategories) {
-    for (const [pattern, label] of CATEGORY_MAP) {
-      if (pattern.test(plaidCat)) return label;
-    }
+/** Returns a normalized budget category label for a transaction name. Falls back to "Other". */
+export function mapCategory(name: string): string {
+  for (const [pattern, label] of CATEGORY_MAP) {
+    if (pattern.test(name)) return label;
   }
   return "Other";
 }
