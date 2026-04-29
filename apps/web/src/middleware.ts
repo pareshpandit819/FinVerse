@@ -4,7 +4,10 @@ import type { NextRequest } from "next/server";
 import { generateNonce, buildCsp } from "@/lib/csp";
 import { authConfig } from "@/lib/auth.config";
 
-const { auth } = NextAuth(authConfig);
+const { auth } = NextAuth({
+  ...authConfig,
+  secret: process.env.AUTH_SECRET,
+});
 
 const PUBLIC_PATHS = ["/login", "/register", "/api/auth", "/api/register"];
 const MFA_CHALLENGE_PATH = "/mfa/challenge";
