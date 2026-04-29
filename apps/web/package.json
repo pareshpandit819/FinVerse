@@ -25,6 +25,7 @@
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.10.3",
     "ioredis": "^5.4.1",
+    "lucide-react": "^0.400.0",
     "next": "15.0.0",
     "next-auth": "^5.0.0-beta.19",
     "nodemailer": "^7.0.13",

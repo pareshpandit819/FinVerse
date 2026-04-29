@@ -20,7 +20,9 @@ setup: ## Install deps, start infra, run migrations, seed
 	@echo "==> Waiting for Postgres to be ready..."
 	@until docker compose exec -T postgres pg_isready -U efd_user -d efd_dev >/dev/null 2>&1; do sleep 1; done
 	@echo "==> Running database migrations..."
-	$(MAKE) db-migrate
+	$(MAKE) db-migrate-deploy
+	@echo "==> Generating Prisma client..."
+	pnpm --filter @repo/db db:generate
 	@echo "==> Seeding database..."
 	$(MAKE) db-seed
 	@echo ""
