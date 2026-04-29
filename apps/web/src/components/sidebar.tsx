@@ -11,12 +11,14 @@ import {
   Lightbulb,
   Settings,
   Wallet,
+  Zap,
 } from "lucide-react";
 import { cn } from "@repo/ui/utils";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Overview",  icon: LayoutDashboard },
   { href: "/accounts",  label: "Accounts",  icon: CreditCard },
+  { href: "/credit",    label: "Credit",    icon: Zap },
   { href: "/net-worth", label: "Net Worth", icon: TrendingUp },
   { href: "/goals",     label: "Goals",     icon: Target },
   { href: "/budgets",   label: "Budgets",   icon: PieChart },
