@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   CreditCard,
@@ -12,6 +13,7 @@ import {
   Settings,
   Wallet,
   Zap,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@repo/ui/utils";
 
@@ -110,6 +112,15 @@ export function Sidebar({ orgName, userEmail }: SidebarProps) {
             <p className="truncate text-xs font-medium text-sky-300/80">{userEmail}</p>
           </div>
         )}
+
+        {/* Logout */}
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sky-400/70 transition-all duration-150 hover:bg-rose-900/40 hover:text-rose-300"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          Sign out
+        </button>
       </div>
     </aside>
   );

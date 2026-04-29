@@ -6,6 +6,7 @@ import { Card, CardContent } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { AddAccountDialog } from "@/components/add-account-dialog";
 import { AddTransactionDialog } from "@/components/add-transaction-dialog";
+import { DeleteAccountButton } from "@/components/delete-account-button";
 import { CreditCard, Landmark, TrendingUp, Wallet, PiggyBank, Plus } from "lucide-react";
 import { ACCOUNT_TYPE_LABELS } from "@repo/shared/schemas";
 import type { AccountType } from "@repo/shared/schemas";
@@ -117,7 +118,12 @@ export default async function AccountsPage() {
                   <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${meta.bg}`}>
                     <Icon className={`h-5 w-5 ${meta.text}`} />
                   </div>
-                  <Badge className={`border text-[10px] font-semibold ${meta.badge}`}>{label}</Badge>
+                  <div className="flex items-center gap-1.5">
+                    <Badge className={`border text-[10px] font-semibold ${meta.badge}`}>{label}</Badge>
+                    {canWrite && (
+                      <DeleteAccountButton accountId={account.id} accountName={account.name} />
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-4">

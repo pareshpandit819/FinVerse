@@ -7,6 +7,7 @@ import { Card, CardContent } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { Progress } from "@repo/ui/progress";
 import { Target, CheckCircle2, AlertTriangle, Clock, TrendingUp } from "lucide-react";
+import { AddGoalDialog } from "@/components/add-goal-dialog";
 
 export default async function GoalsPage() {
   const session = await auth();
@@ -30,6 +31,7 @@ export default async function GoalsPage() {
             {active.length} active · {completed.length} completed
           </p>
         </div>
+        <AddGoalDialog orgId={org.id} />
       </div>
 
       {goals.length === 0 ? (
@@ -40,6 +42,7 @@ export default async function GoalsPage() {
             </div>
             <h3 className="font-semibold text-sky-950">No goals yet</h3>
             <p className="mt-1.5 text-sm text-sky-600/70">Set financial goals to stay on track.</p>
+            <div className="mt-5"><AddGoalDialog orgId={org.id} /></div>
           </CardContent>
         </Card>
       ) : (
