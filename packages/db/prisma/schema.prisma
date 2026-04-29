@@ -61,6 +61,9 @@ model Organization {
   goals                Goal[]
   budgets              Budget[]
   insights             Insight[]
+  creditScores         CreditScore[]
+  creditAccounts       CreditAccount[]
+  creditHistory        CreditHistory[]
 
   @@map("organizations")
 }
@@ -85,6 +88,9 @@ model User {
   goals                Goal[]
   budgets              Budget[]
   insights             Insight[]
+  creditScores         CreditScore[]
+  creditAccounts       CreditAccount[]
+  creditHistory        CreditHistory[]
 
   @@map("users")
 }
@@ -347,4 +353,78 @@ model Insight {
   @@index([userId, generatedAt])
   @@index([expiresAt])
   @@map("insights")
+}
+
+// ---------------------------------------------------------------------------
+// Credit Score and Credit History models
+// ---------------------------------------------------------------------------
+
+model CreditScore {
+  id                 String   @id @default(uuid()) @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  score              Int
+  scoreDate          DateTime @map("score_date") @db.Date
+  paymentHistory     Int      @default(0) @map("payment_history")
+  creditUtilization  Int      @default(0) @map("credit_utilization")
+  creditAge          Int      @default(0) @map("credit_age")
+  derogatoryMarks    Int      @default(0) @map("derogatory_marks")
+  hardInquiries      Int      @default(0) @map("hard_inquiries")
+  totalAccounts      Int      @default(0) @map("total_accounts")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([scoreDate])
+  @@map("credit_scores")
+}
+
+model CreditAccount {
+  id                 String   @id @default(uuid()) @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  accountName        String   @map("account_name")
+  accountType        String   @map("account_type")
+  accountNumber      String   @map("account_number")
+  creditor           String
+  balance            BigInt   @map("balance")
+  creditLimit        BigInt?  @map("credit_limit")
+  accountStatus      String   @default("open") @map("account_status")
+  paymentStatus      String   @default("current") @map("payment_status")
+  monthlyPayment     BigInt?  @map("monthly_payment")
+  openDate           DateTime @map("open_date") @db.Date
+  lastPaymentDate    DateTime? @map("last_payment_date") @db.Date
+  nextPaymentDue     DateTime? @map("next_payment_due") @db.Date
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([accountType])
+  @@map("credit_accounts")
+}
+
+model CreditHistory {
+  id                 String   @id @default(uuid()) @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  creditAccountId    String   @map("credit_account_id")
+  eventType          String   @map("event_type")
+  eventDate          DateTime @map("event_date") @db.Date
+  eventDescription   String   @map("event_description") @db.Text
+  metadata           Json?
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([creditAccountId])
+  @@index([eventDate])
+  @@map("credit_history")
 }
