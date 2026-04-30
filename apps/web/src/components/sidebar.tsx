@@ -14,6 +14,9 @@ import {
   Wallet,
   Zap,
   LogOut,
+  TrendingDown,
+  Bell,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@repo/ui/utils";
 
@@ -24,6 +27,9 @@ const NAV_ITEMS = [
   { href: "/net-worth", label: "Net Worth", icon: TrendingUp },
   { href: "/goals",     label: "Goals",     icon: Target },
   { href: "/budgets",   label: "Budgets",   icon: PieChart },
+  { href: "/debt",      label: "Debt",      icon: TrendingDown },
+  { href: "/alerts",    label: "Alerts",    icon: Bell },
+  { href: "/forecast",  label: "Forecast",  icon: BarChart3 },
   { href: "/insights",  label: "Insights",  icon: Lightbulb },
 ] as const;
 
