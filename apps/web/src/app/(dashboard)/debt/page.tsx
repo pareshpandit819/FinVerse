@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { DebtAccountsList } from "@/components/debt-accounts-list";
 import { PayoffStrategyGenerator } from "@/components/payoff-strategy-generator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/alert";
 import { AlertCircle, Info } from "lucide-react";
 
 interface DebtAccount {
@@ -24,11 +25,18 @@ export default function DebtPage() {
   const [orgId, setOrgId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get organization ID from session context (would be set in middleware)
-    // For now, we'll use a placeholder - this should come from session
-    const sessionOrgId = (session as any)?.user?.organizationId;
-    setOrgId(sessionOrgId);
-  }, [session]);
+    async function loadOrg() {
+      try {
+        const res = await fetch("/api/org/active");
+        if (!res.ok) return;
+        const data = await res.json();
+        setOrgId(data?.org?.id ?? null);
+      } catch (err) {
+        console.error("Failed to load active org:", err);
+      }
+    }
+    loadOrg();
+  }, []);
 
   if (status === "loading") {
     return <div>Loading...</div>;
