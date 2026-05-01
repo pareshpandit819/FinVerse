@@ -64,6 +64,12 @@ model Organization {
   creditScores         CreditScore[]
   creditAccounts       CreditAccount[]
   creditHistory        CreditHistory[]
+  debtAccounts         DebtAccount[]
+  payoffStrategies     PayoffStrategy[]
+  payoffPlans          PayoffPlan[]
+  alertRules           AlertRule[]
+  alertHistory         AlertHistory[]
+  spendingForecasts    SpendingForecast[]
 
   @@map("organizations")
 }
@@ -91,6 +97,12 @@ model User {
   creditScores         CreditScore[]
   creditAccounts       CreditAccount[]
   creditHistory        CreditHistory[]
+  debtAccounts         DebtAccount[]
+  payoffStrategies     PayoffStrategy[]
+  payoffPlans          PayoffPlan[]
+  alertRules           AlertRule[]
+  alertHistory         AlertHistory[]
+  spendingForecasts    SpendingForecast[]
 
   @@map("users")
 }
@@ -427,4 +439,153 @@ model CreditHistory {
   @@index([creditAccountId])
   @@index([eventDate])
   @@map("credit_history")
+}
+
+// ---------------------------------------------------------------------------
+// Debt Payoff Strategy models
+// ---------------------------------------------------------------------------
+
+model DebtAccount {
+  id                 String   @id @default(uuid()) @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  accountName        String   @map("account_name")
+  accountType        String   @map("account_type") // credit_card, personal_loan, auto_loan, mortgage, student_loan
+  currentBalance     BigInt   @map("current_balance") // in cents
+  minimumPayment     BigInt   @map("minimum_payment") // in cents
+  interestRate       Decimal  @map("interest_rate") @db.Decimal(5, 2) // e.g., 18.5
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payoffStrategies PayoffStrategy[]
+  payoffPlans      PayoffPlan[]
+
+  @@index([organizationId, userId])
+  @@index([accountType])
+  @@map("debt_accounts")
+}
+
+model PayoffStrategy {
+  id                 String   @id @default(uuid()) @db.Uuid
+  debtAccountId      String   @map("debt_account_id") @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  strategyType       String   // avalanche or snowball
+  monthlyPaymentAmount BigInt @map("monthly_payment_amount") // in cents
+  projectedPayoffMonths Int  @map("projected_payoff_months")
+  totalInterestPaid  BigInt   @map("total_interest_paid") // in cents
+  payoffDate         DateTime @map("payoff_date") @db.Date
+  schedule           Json     // array of {month, balance, interest, principal, payment}
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  debtAccount DebtAccount @relation(fields: [debtAccountId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([debtAccountId])
+  @@index([organizationId, userId])
+  @@map("payoff_strategies")
+}
+
+model PayoffPlan {
+  id                 String   @id @default(uuid()) @db.Uuid
+  debtAccountId      String   @map("debt_account_id") @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  strategyType       String   // avalanche or snowball
+  monthlyPaymentAmount BigInt @map("monthly_payment_amount") // in cents
+  startDate          DateTime @map("start_date") @db.Date
+  projectedPayoffDate DateTime @map("projected_payoff_date") @db.Date
+  isActive           Boolean  @default(true) @map("is_active")
+  totalInterestSaved BigInt   @default(0) @map("total_interest_saved") // in cents
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  debtAccount DebtAccount @relation(fields: [debtAccountId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([isActive])
+  @@map("payoff_plans")
+}
+
+// ---------------------------------------------------------------------------
+// Alert and Threshold models
+// ---------------------------------------------------------------------------
+
+model AlertRule {
+  id                 String   @id @default(uuid()) @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  name               String
+  ruleType           String   // budget_breach, spending_threshold, large_transaction, bill_due
+  conditionType      String   // greater_than, less_than, equals, percentage_increase
+  threshold          BigInt   @map("threshold") // in cents for monetary thresholds
+  isEnabled          Boolean  @default(true) @map("is_enabled")
+  notificationMethod String   @default("email") @map("notification_method") // email, in_app, both
+  metadata           Json?    // additional config for specific rule types
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alertHistory AlertHistory[]
+
+  @@index([organizationId, userId])
+  @@index([ruleType])
+  @@index([isEnabled])
+  @@map("alert_rules")
+}
+
+model AlertHistory {
+  id                 String   @id @default(uuid()) @db.Uuid
+  alertRuleId        String   @map("alert_rule_id") @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  triggerValue       BigInt?  @map("trigger_value") // the actual value that triggered the alert
+  message            String   @db.Text
+  wasViewed          Boolean  @default(false) @map("was_viewed")
+  triggeredAt        DateTime @default(now()) @map("triggered_at")
+
+  alertRule AlertRule @relation(fields: [alertRuleId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([alertRuleId])
+  @@index([organizationId, userId])
+  @@index([triggeredAt])
+  @@index([wasViewed])
+  @@map("alert_history")
+}
+
+// ---------------------------------------------------------------------------
+// Spending Forecast models
+// ---------------------------------------------------------------------------
+
+model SpendingForecast {
+  id                 String   @id @default(uuid()) @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  forecastType       String   // monthly, quarterly, annual
+  category           String?  // null for overall forecast
+  forecastStartDate  DateTime @map("forecast_start_date") @db.Date
+  forecastEndDate    DateTime @map("forecast_end_date") @db.Date
+  predictedAmount    BigInt   @map("predicted_amount") // in cents
+  confidenceScore    Decimal  @map("confidence_score") @db.Decimal(3, 2) // 0.0 to 1.0
+  dataPoints         Int      @default(0) @map("data_points") // how many historical data points used
+  forecast           Json     // array of {date, amount, lower_bound, upper_bound}
+  methodology        String   @default("linear_regression") // algorithm used
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId, forecastType, category, forecastStartDate])
+  @@index([organizationId, userId])
+  @@index([forecastType])
+  @@map("spending_forecasts")
 }

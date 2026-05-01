@@ -18,6 +18,8 @@ export type Permission =
   | "goal.write.own"
   | "budget.write.any"
   | "budget.write.own"
+  | "data.read.own"
+  | "data.write.own"
   | "insight.read.any"
   | "insight.read.own"
   | "audit.read"
@@ -44,6 +46,8 @@ const PERMISSIONS: Record<Role, Set<Permission>> = {
     "budget.write.own",
     "insight.read.any",
     "insight.read.own",
+    "data.read.own",
+    "data.write.own",
     "audit.read",
     "settings.mfa",
   ]),
@@ -66,6 +70,8 @@ const PERMISSIONS: Record<Role, Set<Permission>> = {
     "budget.write.own",
     "insight.read.any",
     "insight.read.own",
+    "data.read.own",
+    "data.write.own",
     "audit.read",
     "settings.mfa",
   ]),
@@ -77,10 +83,13 @@ const PERMISSIONS: Record<Role, Set<Permission>> = {
     "goal.write.own",
     "budget.write.own",
     "insight.read.own",
+    "data.read.own",
+    "data.write.own",
     "settings.mfa",
   ]),
   VIEWER: new Set([
     "account.read.own",
+    "data.read.own",
     "transaction.read.own",
     "settings.mfa",
   ]),
