@@ -87,4 +87,28 @@ export const AI_TOOL_DEFINITIONS: Anthropic.Tool[] = [
       required: ["userId"],
     },
   },
+  {
+    name: "get_portfolio_summary",
+    description:
+      "Returns investment portfolio summary including all holdings, asset class allocation, unrealized gain/loss, and account breakdown. Use this to analyze investment and trading accounts.",
+    input_schema: {
+      type: "object",
+      properties: {
+        userId: { type: "string", description: "The user's UUID" },
+      },
+      required: ["userId"],
+    },
+  },
+  {
+    name: "get_financial_health_indicators",
+    description:
+      "Returns key financial health metrics: savings rate, debt-to-asset ratio, emergency fund coverage months, net worth growth, budget adherence, and portfolio diversification. Use for holistic financial health assessment.",
+    input_schema: {
+      type: "object",
+      properties: {
+        userId: { type: "string", description: "The user's UUID" },
+      },
+      required: ["userId"],
+    },
+  },
 ];
