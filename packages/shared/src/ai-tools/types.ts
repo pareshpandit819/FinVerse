@@ -49,3 +49,45 @@ export interface AnomalousTransaction {
   category: string;
   deviationMultiple: number;
 }
+
+export interface PortfolioHolding {
+  ticker: string | null;
+  name: string;
+  securityType: string;
+  quantity: number;
+  valueCents: number;
+  costBasisCents: number | null;
+  unrealizedGainLossCents: number | null;
+  allocationPercent: number;
+}
+
+export interface PortfolioAccount {
+  accountId: string;
+  accountName: string;
+  subtype: string | null;
+  valueCents: number;
+  holdingCount: number;
+  holdings: PortfolioHolding[];
+}
+
+export interface PortfolioSummary {
+  totalValueCents: number;
+  totalCostBasisCents: number | null;
+  unrealizedGainLossCents: number | null;
+  gainLossPercent: number | null;
+  accounts: PortfolioAccount[];
+  assetClassBreakdown: Record<string, { valueCents: number; allocationPercent: number }>;
+}
+
+export interface FinancialHealthIndicators {
+  savingsRatePercent: number | null;
+  debtToAssetRatio: number;
+  emergencyFundMonths: number | null;
+  netWorthGrowthPercent: { threeMonth: number | null; sixMonth: number | null };
+  budgetBreachedCategoriesCount: number;
+  portfolioDiversification: {
+    assetClassCount: number;
+    topHoldingPercent: number | null;
+    totalHoldingCount: number;
+  } | null;
+}

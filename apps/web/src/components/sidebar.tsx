@@ -14,12 +14,14 @@ import {
   Wallet,
   Zap,
   LogOut,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@repo/ui/utils";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Overview",  icon: LayoutDashboard },
   { href: "/accounts",  label: "Accounts",  icon: CreditCard },
+  { href: "/trading",   label: "Portfolio", icon: BarChart3 },
   { href: "/credit",    label: "Credit",    icon: Zap },
   { href: "/net-worth", label: "Net Worth", icon: TrendingUp },
   { href: "/goals",     label: "Goals",     icon: Target },

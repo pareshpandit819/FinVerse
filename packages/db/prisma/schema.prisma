@@ -169,6 +169,7 @@ model FinancialAccount {
   userId          String   @map("user_id") @db.Uuid
   name            String
   type            String
+  subtype         String?  // e.g., "brokerage", "ira", "roth_ira", "401k", "crypto"
   balanceCurrent  BigInt   @default(0) @map("balance_current")
   isoCurrencyCode String   @default("USD") @map("iso_currency_code")
   createdAt       DateTime @default(now()) @map("created_at")
@@ -231,6 +232,8 @@ model Holding {
   quantity           Decimal  @db.Decimal(20, 8)
   institutionValue   BigInt   @map("institution_value")
   costBasis          BigInt?  @map("cost_basis")
+  unrealizedGainLoss BigInt?  @map("unrealized_gain_loss")
+  dayChange          BigInt?  @map("day_change")
   isoCurrencyCode    String   @default("USD") @map("iso_currency_code")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
@@ -338,6 +341,7 @@ model Insight {
   body           String    @db.Text
   severity       String    @default("info")
   actionItems    String[]  @map("action_items")
+  metadata       Json?     // Structured data for financial_health_report: { healthScore, concerns, strengths, recommendations }
   toolCallLog    Json      @map("tool_call_log")
   modelId        String    @map("model_id")
   promptHash     String    @map("prompt_hash")

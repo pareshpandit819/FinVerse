@@ -120,7 +120,7 @@ ${context}
 
 Return ONLY a JSON object (no markdown, no extra text):
 {
-  "type": "spending_anomaly" | "subscription_audit" | "goal_pacing" | "savings_opportunity" | "budget_breach_forecast",
+  "type": "spending_anomaly" | "subscription_audit" | "goal_pacing" | "savings_opportunity" | "budget_breach_forecast" | "portfolio_insight",
   "title": "<clear title under 80 characters>",
   "body": "<2-3 sentences, specific amounts in dollars, actionable>",
   "severity": "info" | "warning" | "critical",
@@ -218,6 +218,17 @@ const DEMO_INSIGHTS = [
       "Contribute $375/month for the next 6 months to hit the $7,000 annual IRA limit",
       "Your emergency fund (Marcus Savings) is at 61% of target — stay consistent at $500/month",
       "Continue your current savings rate — on track to cross $65,000 net worth by year-end",
+    ],
+  },
+  {
+    type: "portfolio_insight",
+    severity: "warning",
+    title: "Portfolio Concentrated in Tech — 68% in Single Sector",
+    body: "Your brokerage portfolio ($38,200) is 68% concentrated in technology stocks (AAPL, NVDA, MSFT). While tech has performed well, single-sector concentration amplifies drawdown risk. A 20% rebalance to broad-market ETFs would reduce volatility without sacrificing growth.",
+    actionItems: [
+      "Sell $7,600 of the lowest-conviction tech position and redeploy to VTI or SCHB",
+      "Set a rebalancing trigger: rebalance when any single sector exceeds 40% of portfolio",
+      "Review if your 401k also has tech exposure — combined concentration may be higher",
     ],
   },
 ];

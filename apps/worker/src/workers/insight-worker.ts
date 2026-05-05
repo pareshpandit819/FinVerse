@@ -13,6 +13,8 @@ import {
   getGoalProgress,
   getNetWorthTrend,
   findAnomalousTransactions,
+  getPortfolioSummary,
+  getFinancialHealthIndicators,
 } from "../lib/insight-tools.js";
 
 const MODEL_ID = "claude-haiku-4-5-20251001";
@@ -29,10 +31,26 @@ Guidelines:
 - Express amounts in dollars (convert from cents by dividing by 100)
 - Never speculate about causes; only report what the data shows
 - If data is insufficient for a meaningful insight, say so briefly
-- Produce exactly one JSON insight object in your final response using this schema:
+- Do not include PII, account numbers, or full transaction descriptions
+
+For standard insight types, produce exactly one JSON object:
   { "type": "<insight_type>", "title": "<short title>", "body": "<2-4 sentences>", "severity": "info|warning|critical", "actionItems": ["<step>"] }
-- Valid insight types: spending_anomaly, subscription_audit, goal_pacing, savings_opportunity, budget_breach_forecast
-- Do not include PII, account numbers, or full transaction descriptions`;
+  Valid types: spending_anomaly, subscription_audit, goal_pacing, savings_opportunity, budget_breach_forecast, portfolio_insight
+
+For financial_health_report, produce exactly one JSON object:
+  {
+    "type": "financial_health_report",
+    "title": "<short title>",
+    "body": "<2-3 sentence executive summary>",
+    "severity": "info|warning|critical",
+    "actionItems": ["<top recommendation>"],
+    "metadata": {
+      "healthScore": <0-100 integer>,
+      "concerns": [{ "title": "<issue>", "detail": "<1-2 sentences>", "severity": "warning|critical" }],
+      "strengths": [{ "title": "<positive>", "detail": "<1-2 sentences>" }],
+      "recommendations": [{ "title": "<action>", "detail": "<1-2 sentences>", "priority": "high|medium|low" }]
+    }
+  }`;
 
 export function createInsightWorker(): Worker {
   return new Worker(
@@ -142,6 +160,7 @@ export function createInsightWorker(): Worker {
           body: parsed.body,
           severity: parsed.severity ?? "info",
           actionItems: parsed.actionItems ?? [],
+          metadata: parsed.metadata ?? null,
           toolCallLog,
           modelId: MODEL_ID,
           promptHash,
@@ -194,6 +213,12 @@ async function executeTool(
         typeof input["thresholdMultiple"] === "number" ? input["thresholdMultiple"] : 3.0
       );
 
+    case "get_portfolio_summary":
+      return getPortfolioSummary(organizationId);
+
+    case "get_financial_health_indicators":
+      return getFinancialHealthIndicators(organizationId);
+
     default:
       return { error: `Unknown tool: ${name}` };
   }
@@ -205,8 +230,8 @@ function extractInsightJson(text: string): {
   body: string;
   severity?: string;
   actionItems?: string[];
+  metadata?: unknown;
 } | null {
-  // Try to extract a JSON object from the response
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
 
@@ -217,6 +242,7 @@ function extractInsightJson(text: string): {
       body?: unknown;
       severity?: unknown;
       actionItems?: unknown;
+      metadata?: unknown;
     };
 
     if (
@@ -237,6 +263,7 @@ function extractInsightJson(text: string): {
             .filter((i): i is string => typeof i === "string")
             .slice(0, 5)
         : [],
+      metadata: parsed.metadata ?? undefined,
     };
   } catch {
     return null;

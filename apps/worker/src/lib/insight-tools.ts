@@ -1,5 +1,5 @@
 /**
- * Implementations for the 6 Claude tool calls used in insight generation.
+ * Implementations for the Claude tool calls used in insight generation.
  * All queries are scoped to a single organizationId — never cross-org.
  * Amounts are returned as plain numbers (cents) for JSON serialization.
  */
@@ -12,6 +12,8 @@ import type {
   GoalProgress,
   NetWorthDataPoint,
   AnomalousTransaction,
+  PortfolioSummary,
+  FinancialHealthIndicators,
 } from "@repo/shared/ai-tools";
 
 export async function getAccountSummary(
@@ -262,4 +264,268 @@ export async function findAnomalousTransactions(
   }
 
   return anomalies.sort((a, b) => b.deviationMultiple - a.deviationMultiple).slice(0, 10);
+}
+
+export async function getPortfolioSummary(
+  organizationId: string
+): Promise<PortfolioSummary> {
+  const accounts = await prisma.financialAccount.findMany({
+    where: { organizationId, type: "investment" },
+    select: {
+      id: true,
+      name: true,
+      subtype: true,
+      holdings: {
+        select: {
+          quantity: true,
+          institutionValue: true,
+          costBasis: true,
+          unrealizedGainLoss: true,
+          security: {
+            select: { name: true, tickerSymbol: true, type: true },
+          },
+        },
+      },
+    },
+  });
+
+  let totalValueCents = 0;
+  let totalCostBasisCents = 0;
+  let hasCostBasis = false;
+
+  const accountData = accounts.map((account) => {
+    const accountValueCents = account.holdings.reduce(
+      (sum, h) => sum + Number(h.institutionValue),
+      0
+    );
+    totalValueCents += accountValueCents;
+
+    const holdings = account.holdings.map((h) => {
+      const valueCents = Number(h.institutionValue);
+      const costBasisCents = h.costBasis ? Number(h.costBasis) : null;
+      const unrealizedGainLossCents = h.unrealizedGainLoss
+        ? Number(h.unrealizedGainLoss)
+        : costBasisCents !== null
+          ? valueCents - costBasisCents
+          : null;
+
+      if (costBasisCents !== null) {
+        hasCostBasis = true;
+        totalCostBasisCents += costBasisCents;
+      }
+
+      return {
+        ticker: h.security.tickerSymbol,
+        name: h.security.name,
+        securityType: h.security.type,
+        quantity: Number(h.quantity),
+        valueCents,
+        costBasisCents,
+        unrealizedGainLossCents,
+        allocationPercent: 0, // filled below after totals are known
+      };
+    });
+
+    return {
+      accountId: account.id,
+      accountName: account.name,
+      subtype: account.subtype,
+      valueCents: accountValueCents,
+      holdingCount: holdings.length,
+      holdings,
+    };
+  });
+
+  // Fill allocation percentages and asset class breakdown
+  const assetClassBreakdown: PortfolioSummary["assetClassBreakdown"] = {};
+
+  for (const account of accountData) {
+    for (const holding of account.holdings) {
+      holding.allocationPercent =
+        totalValueCents > 0
+          ? Math.round((holding.valueCents / totalValueCents) * 10000) / 100
+          : 0;
+
+      const cls = holding.securityType || "other";
+      if (!assetClassBreakdown[cls]) {
+        assetClassBreakdown[cls] = { valueCents: 0, allocationPercent: 0 };
+      }
+      assetClassBreakdown[cls]!.valueCents += holding.valueCents;
+    }
+  }
+
+  for (const cls of Object.keys(assetClassBreakdown)) {
+    assetClassBreakdown[cls]!.allocationPercent =
+      totalValueCents > 0
+        ? Math.round(
+            (assetClassBreakdown[cls]!.valueCents / totalValueCents) * 10000
+          ) / 100
+        : 0;
+  }
+
+  const unrealizedGainLossCents = hasCostBasis
+    ? totalValueCents - totalCostBasisCents
+    : null;
+  const gainLossPercent =
+    unrealizedGainLossCents !== null && totalCostBasisCents > 0
+      ? Math.round(
+          (unrealizedGainLossCents / totalCostBasisCents) * 10000
+        ) / 100
+      : null;
+
+  return {
+    totalValueCents,
+    totalCostBasisCents: hasCostBasis ? totalCostBasisCents : null,
+    unrealizedGainLossCents,
+    gainLossPercent,
+    accounts: accountData,
+    assetClassBreakdown,
+  };
+}
+
+export async function getFinancialHealthIndicators(
+  organizationId: string
+): Promise<FinancialHealthIndicators> {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const oneEightyDaysAgo = new Date();
+  oneEightyDaysAgo.setDate(oneEightyDaysAgo.getDate() - 180);
+
+  const [accounts, recentTransactions, snapshots, latestBudget, holdings] =
+    await Promise.all([
+      prisma.financialAccount.findMany({
+        where: { organizationId },
+        select: { type: true, balanceCurrent: true },
+      }),
+      prisma.transaction.findMany({
+        where: {
+          organizationId,
+          date: { gte: thirtyDaysAgo },
+          pending: false,
+        },
+        select: { amount: true },
+      }),
+      prisma.netWorthSnapshot.findMany({
+        where: { organizationId, snapshotDate: { gte: oneEightyDaysAgo } },
+        orderBy: { snapshotDate: "asc" },
+        select: { snapshotDate: true, netWorth: true },
+      }),
+      prisma.budget.findFirst({
+        where: { organizationId },
+        orderBy: { createdAt: "desc" },
+        include: { categories: { select: { limitAmount: true, spentAmount: true } } },
+      }),
+      prisma.holding.findMany({
+        where: { organizationId },
+        select: {
+          institutionValue: true,
+          security: { select: { type: true } },
+        },
+      }),
+    ]);
+
+  // Asset/liability split + liquid assets
+  let totalAssets = 0;
+  let totalLiabilities = 0;
+  let liquidAssets = 0;
+
+  for (const acc of accounts) {
+    const balance = Number(acc.balanceCurrent);
+    if (acc.type === "credit_card" || acc.type === "loan") {
+      totalLiabilities += Math.abs(balance);
+    } else {
+      const pos = Math.max(0, balance);
+      totalAssets += pos;
+      if (acc.type === "checking" || acc.type === "savings") liquidAssets += pos;
+    }
+  }
+
+  const debtToAssetRatio =
+    totalAssets > 0
+      ? Math.round((totalLiabilities / totalAssets) * 10000) / 100
+      : 0;
+
+  // Income vs spending (income = negative amounts = money coming in)
+  const income = recentTransactions
+    .filter((t) => Number(t.amount) < 0)
+    .reduce((s, t) => s + Math.abs(Number(t.amount)), 0);
+  const spending = recentTransactions
+    .filter((t) => Number(t.amount) > 0)
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const savingsRatePercent =
+    income > 0
+      ? Math.round(((income - spending) / income) * 10000) / 100
+      : null;
+
+  const emergencyFundMonths =
+    spending > 0 ? Math.round((liquidAssets / spending) * 10) / 10 : null;
+
+  // Net worth growth
+  let threeMonthGrowth: number | null = null;
+  let sixMonthGrowth: number | null = null;
+  if (snapshots.length >= 2) {
+    const latest = snapshots[snapshots.length - 1]!;
+    const threeMonthCutoff = new Date();
+    threeMonthCutoff.setDate(threeMonthCutoff.getDate() - 90);
+    const threeMonthSnap = snapshots.find(
+      (s) => s.snapshotDate >= threeMonthCutoff
+    );
+    const sixMonthSnap = snapshots[0]!;
+
+    if (threeMonthSnap && Number(threeMonthSnap.netWorth) !== 0) {
+      threeMonthGrowth =
+        Math.round(
+          ((Number(latest.netWorth) - Number(threeMonthSnap.netWorth)) /
+            Math.abs(Number(threeMonthSnap.netWorth))) *
+            10000
+        ) / 100;
+    }
+    if (Number(sixMonthSnap.netWorth) !== 0) {
+      sixMonthGrowth =
+        Math.round(
+          ((Number(latest.netWorth) - Number(sixMonthSnap.netWorth)) /
+            Math.abs(Number(sixMonthSnap.netWorth))) *
+            10000
+        ) / 100;
+    }
+  }
+
+  // Budget adherence
+  const budgetBreachedCategoriesCount = latestBudget
+    ? latestBudget.categories.filter(
+        (c) => Number(c.spentAmount) > Number(c.limitAmount)
+      ).length
+    : 0;
+
+  // Portfolio diversification
+  let portfolioDiversification: FinancialHealthIndicators["portfolioDiversification"] =
+    null;
+  if (holdings.length > 0) {
+    const totalPortfolioValue = holdings.reduce(
+      (s, h) => s + Number(h.institutionValue),
+      0
+    );
+    const assetClasses = new Set(holdings.map((h) => h.security.type));
+    const topHoldingValue = Math.max(
+      ...holdings.map((h) => Number(h.institutionValue))
+    );
+    portfolioDiversification = {
+      assetClassCount: assetClasses.size,
+      topHoldingPercent:
+        totalPortfolioValue > 0
+          ? Math.round((topHoldingValue / totalPortfolioValue) * 10000) / 100
+          : null,
+      totalHoldingCount: holdings.length,
+    };
+  }
+
+  return {
+    savingsRatePercent,
+    debtToAssetRatio,
+    emergencyFundMonths,
+    netWorthGrowthPercent: { threeMonth: threeMonthGrowth, sixMonth: sixMonthGrowth },
+    budgetBreachedCategoriesCount,
+    portfolioDiversification,
+  };
 }
