@@ -1,7 +1,7 @@
 import { prisma } from "@repo/db/client";
 import { requirePermission, withAuthErrors } from "@/lib/rbac";
 import { z } from "zod";
-import { fromCents } from "@repo/shared/money";
+import { centsToDollars } from "@repo/shared/money";
 
 const MarkAlertViewedInput = z.object({
   alertIds: z.array(z.string().uuid()),
@@ -30,7 +30,7 @@ export function GET(request: Request): Promise<Response> {
     return Response.json(
       alertHistory.map((alert) => ({
         ...alert,
-        triggerValue: alert.triggerValue ? fromCents(alert.triggerValue) : null,
+        triggerValue: alert.triggerValue ? centsToDollars(alert.triggerValue) : null,
       }))
     );
   });

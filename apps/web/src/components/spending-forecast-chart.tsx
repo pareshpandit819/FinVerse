@@ -42,12 +42,14 @@ export function SpendingForecastChart({
   const [selectedForecast, setSelectedForecast] = useState<SpendingForecast | null>(null);
   const [forecastType, setForecastType] = useState<"monthly" | "quarterly" | "annual">("monthly");
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchForecasts();
   }, []);
 
   async function fetchForecasts() {
+    setFetchError(null);
     try {
       const response = await fetch(`/api/forecast/spending?orgId=${organizationId}`);
       if (response.ok) {
@@ -56,9 +58,13 @@ export function SpendingForecastChart({
         if (data.length > 0) {
           setSelectedForecast(data[0]);
         }
+      } else {
+        const err = await response.json().catch(() => ({}));
+        setFetchError((err as { error?: string }).error ?? `Server error (${response.status})`);
       }
     } catch (error) {
       console.error("Failed to fetch forecasts:", error);
+      setFetchError("Could not connect to server.");
     }
   }
 
@@ -219,8 +225,14 @@ export function SpendingForecastChart({
           )}
 
           {(!selectedForecast || chartData.length === 0) && (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No forecast data available</p>
+            <div className="text-center py-8 space-y-3">
+              {fetchError ? (
+                <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                  {fetchError}
+                </p>
+              ) : (
+                <p className="text-muted-foreground">No forecast data available</p>
+              )}
               <Button onClick={generateForecast} disabled={isLoading}>
                 {isLoading ? "Generating..." : "Generate First Forecast"}
               </Button>

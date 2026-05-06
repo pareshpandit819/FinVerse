@@ -17,6 +17,9 @@ import {
   TrendingDown,
   Bell,
   BarChart3,
+  Repeat,
+  CalendarDays,
+  Calculator,
 } from "lucide-react";
 import { cn } from "@repo/ui/utils";
 
@@ -27,11 +30,14 @@ const NAV_ITEMS = [
   { href: "/credit",    label: "Credit",    icon: Zap },
   { href: "/net-worth", label: "Net Worth", icon: TrendingUp },
   { href: "/goals",     label: "Goals",     icon: Target },
-  { href: "/budgets",   label: "Budgets",   icon: PieChart },
-  { href: "/debt",      label: "Debt",      icon: TrendingDown },
-  { href: "/alerts",    label: "Alerts",    icon: Bell },
-  { href: "/forecast",  label: "Forecast",  icon: BarChart3 },
-  { href: "/insights",  label: "Insights",  icon: Lightbulb },
+  { href: "/budgets",    label: "Budgets",    icon: PieChart },
+  { href: "/heatmap",    label: "Heatmap",    icon: CalendarDays },
+  { href: "/recurring",  label: "Recurring",  icon: Repeat },
+  { href: "/debt",       label: "Debt",       icon: TrendingDown },
+  { href: "/alerts",     label: "Alerts",     icon: Bell },
+  { href: "/forecast",   label: "Forecast",   icon: BarChart3 },
+  { href: "/tax",        label: "Tax",        icon: Calculator },
+  { href: "/insights",   label: "Insights",   icon: Lightbulb },
 ] as const;
 
 const BOTTOM_ITEMS = [
@@ -60,7 +66,7 @@ export function Sidebar({ orgName, userEmail }: SidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 px-3 py-4">
+      <nav className="flex-1 overflow-y-auto space-y-0.5 px-3 py-4 [scrollbar-width:thin] [scrollbar-color:theme(colors.sky.800)_transparent]">
         <p className="mb-2.5 px-2 text-[10px] font-bold uppercase tracking-widest text-sky-600">
           Navigation
         </p>

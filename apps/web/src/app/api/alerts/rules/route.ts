@@ -1,7 +1,7 @@
 import { prisma } from "@repo/db/client";
 import { requirePermission, withAuthErrors } from "@/lib/rbac";
 import { z } from "zod";
-import { toCents, fromCents } from "@repo/shared/money";
+import { toCents, centsToDollars } from "@repo/shared/money";
 
 const CreateAlertRuleInput = z.object({
   organizationId: z.string().uuid(),
@@ -38,7 +38,7 @@ export function GET(request: Request): Promise<Response> {
     return Response.json(
       alertRules.map((rule) => ({
         ...rule,
-        threshold: fromCents(rule.threshold),
+        threshold: centsToDollars(rule.threshold),
       }))
     );
   });
@@ -82,7 +82,7 @@ export function POST(request: Request): Promise<Response> {
     return Response.json(
       {
         ...alertRule,
-        threshold: fromCents(alertRule.threshold),
+        threshold: centsToDollars(alertRule.threshold),
       },
       { status: 201 }
     );

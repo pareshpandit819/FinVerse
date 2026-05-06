@@ -1,7 +1,7 @@
 import { prisma } from "@repo/db/client";
 import { requirePermission, withAuthErrors } from "@/lib/rbac";
 import { z } from "zod";
-import { fromCents } from "@repo/shared/money";
+import { centsToDollars } from "@repo/shared/money";
 
 const GenerateSpendingForecastInput = z.object({
   organizationId: z.string().uuid(),
@@ -85,18 +85,31 @@ export function GET(request: Request): Promise<Response> {
 
     await requirePermission(orgId, "data.read.own");
 
-    const forecasts = await prisma.spendingForecast.findMany({
-      where: { organizationId: orgId },
-      orderBy: { createdAt: "desc" },
-    });
+    try {
+      const forecasts = await prisma.spendingForecast.findMany({
+        where: { organizationId: orgId },
+        orderBy: { createdAt: "desc" },
+      });
 
-    return Response.json(
-      forecasts.map((forecast) => ({
-        ...forecast,
-        predictedAmount: fromCents(forecast.predictedAmount),
-        forecast: forecast.forecast as any, // Already contains amounts as cents
-      }))
-    );
+      return Response.json(
+        forecasts.map((forecast) => ({
+          id: forecast.id,
+          organizationId: forecast.organizationId,
+          forecastType: forecast.forecastType,
+          category: forecast.category,
+          predictedAmount: centsToDollars(forecast.predictedAmount),
+          confidenceScore: Number(forecast.confidenceScore),
+          dataPoints: forecast.dataPoints,
+          forecast: forecast.forecast,
+          methodology: forecast.methodology,
+          createdAt: forecast.createdAt,
+          updatedAt: forecast.updatedAt,
+        }))
+      );
+    } catch (err) {
+      console.error("[forecast GET]", err);
+      return Response.json({ error: String(err instanceof Error ? err.message : err) }, { status: 500 });
+    }
   });
 }
 
@@ -200,8 +213,17 @@ export function POST(request: Request): Promise<Response> {
 
     return Response.json(
       {
-        ...spendingForecast,
-        predictedAmount: fromCents(spendingForecast.predictedAmount),
+        id: spendingForecast.id,
+        organizationId: spendingForecast.organizationId,
+        forecastType: spendingForecast.forecastType,
+        category: spendingForecast.category,
+        predictedAmount: centsToDollars(spendingForecast.predictedAmount),
+        confidenceScore: Number(spendingForecast.confidenceScore),
+        dataPoints: spendingForecast.dataPoints,
+        forecast: spendingForecast.forecast,
+        methodology: spendingForecast.methodology,
+        createdAt: spendingForecast.createdAt,
+        updatedAt: spendingForecast.updatedAt,
       },
       { status: 201 }
     );

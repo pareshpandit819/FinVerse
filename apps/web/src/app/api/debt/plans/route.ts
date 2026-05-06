@@ -1,7 +1,7 @@
 import { prisma } from "@repo/db/client";
 import { requirePermission, withAuthErrors } from "@/lib/rbac";
 import { z } from "zod";
-import { fromCents } from "@repo/shared/money";
+import { centsToDollars } from "@repo/shared/money";
 
 const CreatePayoffPlanInput = z.object({
   organizationId: z.string().uuid(),
@@ -27,12 +27,12 @@ export function GET(request: Request): Promise<Response> {
     return Response.json(
       payoffPlans.map((plan) => ({
         ...plan,
-        monthlyPaymentAmount: fromCents(plan.monthlyPaymentAmount),
-        totalInterestSaved: fromCents(plan.totalInterestSaved),
+        monthlyPaymentAmount: centsToDollars(plan.monthlyPaymentAmount),
+        totalInterestSaved: centsToDollars(plan.totalInterestSaved),
         debtAccount: {
           ...plan.debtAccount,
-          currentBalance: fromCents(plan.debtAccount.currentBalance),
-          minimumPayment: fromCents(plan.debtAccount.minimumPayment),
+          currentBalance: centsToDollars(plan.debtAccount.currentBalance),
+          minimumPayment: centsToDollars(plan.debtAccount.minimumPayment),
         },
       }))
     );
@@ -108,8 +108,8 @@ export function POST(request: Request): Promise<Response> {
     return Response.json(
       {
         ...payoffPlan,
-        monthlyPaymentAmount: fromCents(payoffPlan.monthlyPaymentAmount),
-        totalInterestSaved: fromCents(payoffPlan.totalInterestSaved),
+        monthlyPaymentAmount: centsToDollars(payoffPlan.monthlyPaymentAmount),
+        totalInterestSaved: centsToDollars(payoffPlan.totalInterestSaved),
       },
       { status: 201 }
     );
