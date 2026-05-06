@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Wallet, ArrowRight, Loader2, TrendingUp, ShieldCheck, Sparkles } from "lucide-react";
@@ -26,9 +26,11 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    // Clear any stale session before attempting a fresh login
+    await signOut({ redirect: false }).catch(() => {});
     const result = await signIn("credentials", { email, password, redirect: false });
     if (result?.error) { setError("Invalid email or password. Please try again."); setLoading(false); return; }
-    window.location.href = callbackUrl;
+    window.location.href = "/dashboard";
   }
 
   const inputCls =
