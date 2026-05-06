@@ -1,7 +1,7 @@
 import { prisma } from "@repo/db/client";
 import { requirePermission, withAuthErrors } from "@/lib/rbac";
 import { z } from "zod";
-import { toCents, fromCents } from "@repo/shared/money";
+import { toCents, centsToDollars } from "@repo/shared/money";
 
 const CreateDebtAccountInput = z.object({
   organizationId: z.string().uuid(),
@@ -35,8 +35,9 @@ export function GET(request: Request): Promise<Response> {
     return Response.json(
       debtAccounts.map((acc) => ({
         ...acc,
-        currentBalance: fromCents(acc.currentBalance),
-        minimumPayment: fromCents(acc.minimumPayment),
+        currentBalance: centsToDollars(acc.currentBalance),
+        minimumPayment: centsToDollars(acc.minimumPayment),
+        interestRate: Number(acc.interestRate),
       }))
     );
   });
@@ -78,8 +79,9 @@ export function POST(request: Request): Promise<Response> {
     return Response.json(
       {
         ...debtAccount,
-        currentBalance: fromCents(debtAccount.currentBalance),
-        minimumPayment: fromCents(debtAccount.minimumPayment),
+        currentBalance: centsToDollars(debtAccount.currentBalance),
+        minimumPayment: centsToDollars(debtAccount.minimumPayment),
+        interestRate: Number(debtAccount.interestRate),
       },
       { status: 201 }
     );

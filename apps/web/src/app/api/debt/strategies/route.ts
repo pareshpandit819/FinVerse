@@ -1,7 +1,7 @@
 import { prisma } from "@repo/db/client";
 import { requirePermission, withAuthErrors } from "@/lib/rbac";
 import { z } from "zod";
-import { fromCents } from "@repo/shared/money";
+import { centsToDollars } from "@repo/shared/money";
 
 const GeneratePayoffStrategyInput = z.object({
   organizationId: z.string().uuid(),
@@ -124,8 +124,8 @@ export function POST(request: Request): Promise<Response> {
     return Response.json(
       {
         ...strategy,
-        monthlyPaymentAmount: fromCents(strategy.monthlyPaymentAmount),
-        totalInterestPaid: fromCents(strategy.totalInterestPaid),
+        monthlyPaymentAmount: centsToDollars(strategy.monthlyPaymentAmount),
+        totalInterestPaid: centsToDollars(strategy.totalInterestPaid),
       },
       { status: 201 }
     );
