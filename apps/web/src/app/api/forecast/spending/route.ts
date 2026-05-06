@@ -77,40 +77,40 @@ function calculateLinearForecast(
   };
 }
 
-export function GET(request: Request): Promise<Response> {
-  return withAuthErrors(async () => {
+export async function GET(request: Request): Promise<Response> {
+  try {
     const { searchParams } = new URL(request.url);
     const orgId = searchParams.get("orgId");
     if (!orgId) return Response.json({ error: "orgId required" }, { status: 400 });
 
     await requirePermission(orgId, "data.read.own");
 
-    try {
-      const forecasts = await prisma.spendingForecast.findMany({
-        where: { organizationId: orgId },
-        orderBy: { createdAt: "desc" },
-      });
+    const forecasts = await prisma.spendingForecast.findMany({
+      where: { organizationId: orgId },
+      orderBy: { createdAt: "desc" },
+    });
 
-      return Response.json(
-        forecasts.map((forecast) => ({
-          id: forecast.id,
-          organizationId: forecast.organizationId,
-          forecastType: forecast.forecastType,
-          category: forecast.category,
-          predictedAmount: centsToDollars(forecast.predictedAmount),
-          confidenceScore: Number(forecast.confidenceScore),
-          dataPoints: forecast.dataPoints,
-          forecast: forecast.forecast,
-          methodology: forecast.methodology,
-          createdAt: forecast.createdAt,
-          updatedAt: forecast.updatedAt,
-        }))
-      );
-    } catch (err) {
-      console.error("[forecast GET]", err);
-      return Response.json({ error: String(err instanceof Error ? err.message : err) }, { status: 500 });
-    }
-  });
+    return Response.json(
+      forecasts.map((f) => ({
+        id: f.id,
+        organizationId: f.organizationId,
+        forecastType: f.forecastType,
+        category: f.category,
+        predictedAmount: centsToDollars(f.predictedAmount),
+        confidenceScore: Number(f.confidenceScore),
+        dataPoints: f.dataPoints,
+        forecast: f.forecast,
+        methodology: f.methodology,
+        createdAt: f.createdAt,
+        updatedAt: f.updatedAt,
+      }))
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[GET /api/forecast/spending]", msg);
+    if (msg.includes("Unauthenticated")) return Response.json({ error: "Unauthenticated" }, { status: 401 });
+    return Response.json({ error: msg }, { status: 500 });
+  }
 }
 
 export function POST(request: Request): Promise<Response> {

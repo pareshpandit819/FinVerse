@@ -8,7 +8,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!session?.user) redirect("/login");
 
   const org = await getActiveOrg();
-  if (!org) redirect("/login?error=no-org");
+  // If no org is found the session is stale (e.g. after a DB reset) — sign out to break the loop
+  if (!org) redirect("/api/auth/signout?callbackUrl=/login");
 
   return (
     <div className="flex h-screen overflow-hidden bg-sky-50/60">
