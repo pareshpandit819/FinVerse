@@ -7,7 +7,7 @@ const GenerateSpendingForecastInput = z.object({
   organizationId: z.string().uuid(),
   forecastType: z.enum(["monthly", "quarterly", "annual"]),
   category: z.string().optional(),
-  daysLookback: z.number().default(90).min(30).max(365),
+  daysLookback: z.number().min(30).max(365).default(90),
 });
 
 // Simple linear regression forecast
