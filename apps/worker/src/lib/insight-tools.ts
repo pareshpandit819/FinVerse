@@ -529,3 +529,47 @@ export async function getFinancialHealthIndicators(
     portfolioDiversification,
   };
 }
+
+export async function findDuplicateCharges(
+  organizationId: string,
+  daysWindow = 3
+) {
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      organizationId,
+    },
+    orderBy: {
+      postedAt: "desc",
+    },
+    take: 500,
+  });
+
+  const grouped = new Map<string, typeof transactions>();
+
+  for (const tx of transactions) {
+    const name = typeof tx.name === "string" ? tx.name : "";
+    const amount = tx.amount;
+
+    if (!name || amount == null) {
+      continue;
+    }
+
+    const normalizedMerchant = name.toLowerCase().trim();
+    const key = `${normalizedMerchant}:${amount}`;
+
+    grouped.set(key, [...(grouped.get(key) ?? []), tx]);
+  }
+
+  return [...grouped.values()]
+    .filter((group) => group.length >= 2)
+    .map((group) => ({
+      merchantName: group[0].name,
+      amount: group[0].amount / 100,
+      amountCents: group[0].amount,
+      transactionIds: group.map((tx) => tx.id),
+      transactionDates: group.map((tx) => tx.postedAt),
+      count: group.length,
+      daysWindow,
+      confidence: 0.82,
+    }));
+}
