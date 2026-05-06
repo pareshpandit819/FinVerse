@@ -476,7 +476,7 @@ model PayoffStrategy {
   debtAccountId      String   @map("debt_account_id") @db.Uuid
   organizationId     String   @map("organization_id") @db.Uuid
   userId             String   @map("user_id") @db.Uuid
-  strategyType       String   // avalanche or snowball
+  strategyType       String   @map("strategy_type") // avalanche or snowball
   monthlyPaymentAmount BigInt @map("monthly_payment_amount") // in cents
   projectedPayoffMonths Int  @map("projected_payoff_months")
   totalInterestPaid  BigInt   @map("total_interest_paid") // in cents
@@ -498,7 +498,7 @@ model PayoffPlan {
   debtAccountId      String   @map("debt_account_id") @db.Uuid
   organizationId     String   @map("organization_id") @db.Uuid
   userId             String   @map("user_id") @db.Uuid
-  strategyType       String   // avalanche or snowball
+  strategyType       String   @map("strategy_type") // avalanche or snowball
   monthlyPaymentAmount BigInt @map("monthly_payment_amount") // in cents
   startDate          DateTime @map("start_date") @db.Date
   projectedPayoffDate DateTime @map("projected_payoff_date") @db.Date
@@ -525,8 +525,8 @@ model AlertRule {
   organizationId     String   @map("organization_id") @db.Uuid
   userId             String   @map("user_id") @db.Uuid
   name               String
-  ruleType           String   // budget_breach, spending_threshold, large_transaction, bill_due
-  conditionType      String   // greater_than, less_than, equals, percentage_increase
+  ruleType           String   @map("rule_type") // budget_breach, spending_threshold, large_transaction, bill_due
+  conditionType      String   @map("condition_type") // greater_than, less_than, equals, percentage_increase
   threshold          BigInt   @map("threshold") // in cents for monetary thresholds
   isEnabled          Boolean  @default(true) @map("is_enabled")
   notificationMethod String   @default("email") @map("notification_method") // email, in_app, both
@@ -573,7 +573,7 @@ model SpendingForecast {
   id                 String   @id @default(uuid()) @db.Uuid
   organizationId     String   @map("organization_id") @db.Uuid
   userId             String   @map("user_id") @db.Uuid
-  forecastType       String   // monthly, quarterly, annual
+  forecastType       String   @map("forecast_type") // monthly, quarterly, annual
   category           String?  // null for overall forecast
   forecastStartDate  DateTime @map("forecast_start_date") @db.Date
   forecastEndDate    DateTime @map("forecast_end_date") @db.Date
