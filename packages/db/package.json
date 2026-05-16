@@ -13,7 +13,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:seed": "NODE_OPTIONS='--env-file=.env' tsx src/seed.ts",
+    "db:seed": "tsx --env-file=.env src/seed.ts",
     "db:reset": "prisma migrate reset --force",
     "db:studio": "prisma studio"
   },
