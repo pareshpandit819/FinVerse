@@ -24,6 +24,16 @@ type TransactionsResponse = {
   nextCursor: string | null;
 };
 
+const QUICK_CATEGORIES = [
+  "Food & Dining",
+  "Shopping",
+  "Subscriptions",
+  "Bills & Utilities",
+  "Travel & Transport",
+  "Health & Wellness",
+  "Income",
+];
+
 function formatMoney(amountInCents: string, currency: string): string {
   const amount = Number(amountInCents) / 100;
 
@@ -44,20 +54,22 @@ function formatDate(date: string): string {
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
+
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [pending, setPending] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const categories = useMemo(() => {
-    return Array.from(
-      new Set(
-        transactions
-          .map((transaction) => transaction.customCategory)
-          .filter(Boolean)
-      )
-    ) as string[];
+    const dynamicCategories = transactions
+      .map((transaction) => transaction.customCategory)
+      .filter(Boolean) as string[];
+
+    return Array.from(new Set([...QUICK_CATEGORIES, ...dynamicCategories]));
   }, [transactions]);
 
   async function fetchTransactions(cursor?: string | null) {
@@ -82,6 +94,14 @@ export default function TransactionsPage() {
         params.set("pending", pending);
       }
 
+      if (startDate) {
+        params.set("startDate", startDate);
+      }
+
+      if (endDate) {
+        params.set("endDate", endDate);
+      }
+
       if (cursor) {
         params.set("cursor", cursor);
       }
@@ -97,6 +117,7 @@ export default function TransactionsPage() {
       setTransactions((previous) =>
         cursor ? [...previous, ...data.items] : data.items
       );
+
       setNextCursor(data.nextCursor);
     } catch (err) {
       setError(
@@ -122,6 +143,28 @@ export default function TransactionsPage() {
     setSearch("");
     setCategory("");
     setPending("");
+    setStartDate("");
+    setEndDate("");
+    setTransactions([]);
+    setNextCursor(null);
+
+    setTimeout(() => {
+      fetchTransactions(null);
+    }, 0);
+  }
+
+  function handleQuickCategory(nextCategory: string) {
+    setCategory(nextCategory);
+    setTransactions([]);
+    setNextCursor(null);
+
+    setTimeout(() => {
+      fetchTransactions(null);
+    }, 0);
+  }
+
+  function clearQuickCategory() {
+    setCategory("");
     setTransactions([]);
     setNextCursor(null);
 
@@ -146,6 +189,14 @@ export default function TransactionsPage() {
 
     if (pending) {
       params.set("pending", pending);
+    }
+
+    if (startDate) {
+      params.set("startDate", startDate);
+    }
+
+    if (endDate) {
+      params.set("endDate", endDate);
     }
 
     window.location.href = `/api/transactions?${params.toString()}`;
@@ -198,21 +249,84 @@ export default function TransactionsPage() {
           <div className="flex gap-2">
             <button
               onClick={applyFilters}
-              className="flex-1 rounded-xl bg-slate-950 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+              disabled={loading}
+              className="flex-1 rounded-xl bg-slate-950 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Apply
             </button>
 
             <button
               onClick={resetFilters}
-              className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              disabled={loading}
+              className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Reset
             </button>
           </div>
         </div>
 
-        <div className="mt-3 flex justify-end">
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-500">
+              Start date
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-500">
+              End date
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(event) => setEndDate(event.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <p className="mb-2 text-xs font-medium text-slate-500">
+            Quick categories
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={clearQuickCategory}
+              disabled={loading}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
+                category === ""
+                  ? "border-slate-950 bg-slate-950 text-white"
+                  : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              All
+            </button>
+
+            {QUICK_CATEGORIES.map((item) => (
+              <button
+                key={item}
+                onClick={() => handleQuickCategory(item)}
+                disabled={loading}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
+                  category === item
+                    ? "border-slate-950 bg-slate-950 text-white"
+                    : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-end">
           <button
             onClick={exportCsv}
             className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
