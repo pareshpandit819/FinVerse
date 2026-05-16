@@ -8,6 +8,7 @@ import {
   CreditCard,
   TrendingUp,
   Target,
+  ReceiptText,
   PieChart,
   Lightbulb,
   Settings,
@@ -25,6 +26,7 @@ import { cn } from "@repo/ui/utils";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Overview",  icon: LayoutDashboard },
+  { href: "/transactions", label: "Transactions", icon: ReceiptText },
   { href: "/accounts",  label: "Accounts",  icon: CreditCard },
   { href: "/trading",   label: "Portfolio", icon: BarChart3 },
   { href: "/credit",    label: "Credit",    icon: Zap },
