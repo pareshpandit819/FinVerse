@@ -36,11 +36,22 @@ const QUICK_CATEGORIES = [
 
 function formatMoney(amountInCents: string, currency: string): string {
   const amount = Number(amountInCents) / 100;
+  const absoluteAmount = Math.abs(amount);
 
-  return new Intl.NumberFormat("en-US", {
+  const formatted = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-  }).format(amount);
+  }).format(absoluteAmount);
+
+  if (amount < 0) {
+    return `+${formatted}`;
+  }
+
+  return `-${formatted}`;
+}
+
+function isIncomeTransaction(amountInCents: string): boolean {
+  return Number(amountInCents) < 0;
 }
 
 function formatDate(date: string): string {
@@ -51,9 +62,21 @@ function formatDate(date: string): string {
   }).format(new Date(date));
 }
 
+function formatDateTime(date: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(date));
+}
+
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
@@ -366,51 +389,63 @@ export default function TransactionsPage() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-              {transactions.map((transaction) => (
-                <tr key={transaction.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 text-slate-600">
-                    {formatDate(transaction.date)}
-                  </td>
+              {transactions.map((transaction) => {
+                const isIncome = isIncomeTransaction(transaction.amount);
 
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-slate-950">
-                      {transaction.name}
-                    </div>
-                    <div className="text-xs text-slate-500">
-                      {transaction.financialAccountId}
-                    </div>
-                  </td>
+                return (
+                  <tr
+                    key={transaction.id}
+                    onClick={() => setSelectedTransaction(transaction)}
+                    className="cursor-pointer hover:bg-slate-50"
+                  >
+                    <td className="px-4 py-3 text-slate-600">
+                      {formatDate(transaction.date)}
+                    </td>
 
-                  <td className="px-4 py-3 text-slate-600">
-                    {transaction.merchantName ?? "—"}
-                  </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-slate-950">
+                        {transaction.name}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {transaction.financialAccountId}
+                      </div>
+                    </td>
 
-                  <td className="px-4 py-3">
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                      {transaction.customCategory ?? "Uncategorized"}
-                    </span>
-                  </td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {transaction.merchantName ?? "—"}
+                    </td>
 
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs font-medium ${
-                        transaction.pending
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-emerald-100 text-emerald-700"
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
+                        {transaction.customCategory ?? "Uncategorized"}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-medium ${
+                          transaction.pending
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-emerald-100 text-emerald-700"
+                        }`}
+                      >
+                        {transaction.pending ? "Pending" : "Posted"}
+                      </span>
+                    </td>
+
+                    <td
+                      className={`px-4 py-3 text-right font-semibold ${
+                        isIncome ? "text-emerald-700" : "text-rose-700"
                       }`}
                     >
-                      {transaction.pending ? "Pending" : "Posted"}
-                    </span>
-                  </td>
-
-                  <td className="px-4 py-3 text-right font-semibold text-slate-950">
-                    {formatMoney(
-                      transaction.amount,
-                      transaction.isoCurrencyCode
-                    )}
-                  </td>
-                </tr>
-              ))}
+                      {formatMoney(
+                        transaction.amount,
+                        transaction.isoCurrencyCode
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
 
               {!loading && transactions.length === 0 ? (
                 <tr>
@@ -440,6 +475,116 @@ export default function TransactionsPage() {
           </button>
         </div>
       </section>
+
+      {selectedTransaction ? (
+        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/30">
+          <button
+            aria-label="Close transaction details"
+            className="absolute inset-0 cursor-default"
+            onClick={() => setSelectedTransaction(null)}
+          />
+
+          <aside className="relative h-full w-full max-w-md overflow-y-auto bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <p className="text-sm text-slate-500">Transaction details</p>
+                <h2 className="mt-1 text-xl font-semibold text-slate-950">
+                  {selectedTransaction.name}
+                </h2>
+              </div>
+
+              <button
+                onClick={() => setSelectedTransaction(null)}
+                className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-600 hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-6 space-y-5">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  Amount
+                </p>
+                <p
+                  className={`mt-1 text-2xl font-semibold ${
+                    isIncomeTransaction(selectedTransaction.amount)
+                      ? "text-emerald-700"
+                      : "text-rose-700"
+                  }`}
+                >
+                  {formatMoney(
+                    selectedTransaction.amount,
+                    selectedTransaction.isoCurrencyCode
+                  )}
+                </p>
+              </div>
+
+              <div className="grid gap-4 rounded-2xl bg-slate-50 p-4">
+                <DetailRow
+                  label="Merchant"
+                  value={selectedTransaction.merchantName ?? "—"}
+                />
+                <DetailRow
+                  label="Category"
+                  value={selectedTransaction.customCategory ?? "Uncategorized"}
+                />
+                <DetailRow
+                  label="Date"
+                  value={formatDate(selectedTransaction.date)}
+                />
+                <DetailRow
+                  label="Status"
+                  value={selectedTransaction.pending ? "Pending" : "Posted"}
+                />
+                <DetailRow
+                  label="Currency"
+                  value={selectedTransaction.isoCurrencyCode}
+                />
+              </div>
+
+              <div className="grid gap-4 rounded-2xl bg-slate-50 p-4">
+                <DetailRow
+                  label="Transaction ID"
+                  value={selectedTransaction.id}
+                />
+                <DetailRow
+                  label="Financial Account ID"
+                  value={selectedTransaction.financialAccountId}
+                />
+                <DetailRow
+                  label="Organization ID"
+                  value={selectedTransaction.organizationId}
+                />
+              </div>
+
+              <div className="grid gap-4 rounded-2xl bg-slate-50 p-4">
+                <DetailRow
+                  label="Created"
+                  value={formatDateTime(selectedTransaction.createdAt)}
+                />
+                <DetailRow
+                  label="Updated"
+                  value={formatDateTime(selectedTransaction.updatedAt)}
+                />
+              </div>
+            </div>
+          </aside>
+        </div>
+      ) : null}
     </main>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm font-medium text-slate-950">
+        {value}
+      </p>
+    </div>
   );
 }

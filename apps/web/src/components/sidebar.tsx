@@ -8,6 +8,7 @@ import {
   CreditCard,
   TrendingUp,
   Target,
+  MessageCircle,
   ReceiptText,
   PieChart,
   Lightbulb,
@@ -39,6 +40,7 @@ const NAV_ITEMS = [
   { href: "/alerts",     label: "Alerts",     icon: Bell },
   { href: "/forecast",   label: "Forecast",   icon: BarChart3 },
   { href: "/tax",        label: "Tax",        icon: Calculator },
+  { href: "/coach", label: "AI Coach", icon: MessageCircle },
   { href: "/insights",   label: "Insights",   icon: Lightbulb },
 ] as const;
 
