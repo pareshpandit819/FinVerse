@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FinVerse — Graduate Demo Presentation</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sky-950: #082f49;
+    --sky-900: #0c4a6e;
+    --sky-700: #0369a1;
+    --sky-500: #0ea5e9;
+    --sky-400: #38bdf8;
+    --sky-200: #bae6fd;
+    --sky-100: #e0f2fe;
+    --sky-50:  #f0f9ff;
+    --rose-500: #f43f5e;
+    --emerald-600: #059669;
+    --amber-500: #f59e0b;
+    --violet-600: #7c3aed;
+    --gray-800: #1f2937;
+    --gray-600: #4b5563;
+    --gray-200: #e5e7eb;
+    --white: #ffffff;
+  }
+
+  html, body { height: 100%; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+  /* ── navigation ── */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(8,47,73,0.96); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav-brand { color: var(--sky-400); font-weight: 700; font-size: 14px; letter-spacing: 0.04em; }
+  .nav-controls { display: flex; align-items: center; gap: 8px; }
+  .nav-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+    color: white; padding: 5px 14px; border-radius: 8px; cursor: pointer;
+    font-size: 13px; font-weight: 500; transition: background 0.15s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.2); }
+  .slide-counter { color: rgba(255,255,255,0.5); font-size: 12px; min-width: 60px; text-align: center; }
+
+  /* ── slides ── */
+  .slides { padding-top: 44px; }
+  .slide {
+    display: none; min-height: calc(100vh - 44px);
+    padding: 60px 80px; position: relative; overflow: hidden;
+  }
+  .slide.active { display: flex; flex-direction: column; }
+  .slide.dark { background: var(--sky-950); color: white; }
+  .slide.light { background: var(--white); color: var(--gray-800); }
+  .slide.tinted { background: var(--sky-50); color: var(--gray-800); }
+
+  /* ── slide number badge ── */
+  .slide-num {
+    position: absolute; top: 20px; right: 28px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; opacity: 0.35;
+  }
+
+  /* ── typography ── */
+  .label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--sky-500); margin-bottom: 12px;
+  }
+  .slide.dark .label { color: var(--sky-400); }
+
+  h1 { font-size: 52px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+  h2 { font-size: 34px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+  h3 { font-size: 18px; font-weight: 700; }
+  p  { font-size: 15px; line-height: 1.65; }
+  .sub { font-size: 17px; line-height: 1.6; opacity: 0.75; margin-top: 16px; max-width: 640px; }
+
+  /* ── layout helpers ── */
+  .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
+  .cols-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+  .flex-center { display: flex; align-items: center; gap: 12px; }
+  .mt-auto { margin-top: auto; }
+  .mt-8  { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-32 { margin-top: 32px; }
+  .mt-48 { margin-top: 48px; }
+
+  /* ── cards ── */
+  .card {
+    background: white; border: 1px solid var(--gray-200);
+    border-radius: 16px; padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .card.sky { background: var(--sky-50); border-color: var(--sky-200); }
+  .card.dark-card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 24px; }
+  .card-title { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-600); margin-bottom: 8px; }
+  .card-value { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+  .card-sub { font-size: 12px; opacity: 0.6; margin-top: 4px; }
+
+  /* ── kpi strip ── */
+  .kpi { text-align: center; }
+  .kpi-val { font-size: 40px; font-weight: 800; }
+  .kpi-lbl { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; margin-top: 4px; }
+
+  /* ── feature pills / badges ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;
+  }
+  .badge.sky    { background: var(--sky-100); color: var(--sky-700); }
+  .badge.rose   { background: #ffe4e6; color: #be123c; }
+  .badge.emerald{ background: #d1fae5; color: var(--emerald-600); }
+  .badge.amber  { background: #fef3c7; color: #92400e; }
+  .badge.violet { background: #ede9fe; color: var(--violet-600); }
+  .badge.white  { background: rgba(255,255,255,0.15); color: white; }
+
+  /* ── module grid ── */
+  .module {
+    border-radius: 12px; padding: 18px 20px;
+    background: var(--sky-50); border: 1px solid var(--sky-200);
+  }
+  .module-title { font-size: 14px; font-weight: 700; color: var(--sky-950); }
+  .module-desc  { font-size: 12px; color: var(--gray-600); margin-top: 4px; line-height: 1.5; }
+  .module-tag   { display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sky-500); }
+
+  /* ── tech stack ── */
+  .tech-layer {
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .tech-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .tech-name { font-weight: 700; font-size: 14px; min-width: 160px; }
+  .tech-items { font-size: 13px; opacity: 0.7; }
+
+  /* ── lesson item ── */
+  .lesson {
+    display: flex; gap: 16px; margin-bottom: 20px;
+    padding: 18px 20px; border-radius: 12px;
+    background: white; border: 1px solid var(--gray-200);
+  }
+  .lesson-num {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--sky-500); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 14px;
+  }
+  .lesson-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .lesson-body  { font-size: 13px; line-height: 1.55; color: var(--gray-600); }
+
+  /* ── big data tier ── */
+  .bd-tier {
+    background: white; border-radius: 12px; padding: 18px 20px;
+    border-left: 4px solid var(--sky-500); margin-bottom: 14px;
+  }
+  .bd-tier.rose   { border-color: var(--rose-500); }
+  .bd-tier.emerald{ border-color: var(--emerald-600); }
+  .bd-tier.amber  { border-color: var(--amber-500); }
+  .bd-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .bd-body  { font-size: 13px; color: var(--gray-600); line-height: 1.55; }
+
+  /* ── flow steps ── */
+  .flow { display: flex; align-items: center; gap: 0; margin-top: 24px; flex-wrap: wrap; }
+  .flow-step {
+    background: var(--sky-500); color: white;
+    padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600;
+    text-align: center; min-width: 130px; flex: 1;
+  }
+  .flow-arrow { font-size: 20px; color: var(--sky-400); padding: 0 8px; flex-shrink: 0; }
+
+  /* ── divider ── */
+  .divider { border: none; border-top: 1px solid var(--gray-200); margin: 24px 0; }
+  .divider.dark-div { border-color: rgba(255,255,255,0.1); }
+
+  /* ── mock screenshot ── */
+  .screenshot {
+    border-radius: 16px; overflow: hidden;
+    border: 1px solid var(--sky-200); background: var(--sky-950);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .screen-bar {
+    background: rgba(255,255,255,0.06); padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .screen-body { display: flex; min-height: 260px; }
+  .screen-sidebar {
+    width: 140px; background: var(--sky-950); padding: 12px;
+    border-right: 1px solid rgba(255,255,255,0.05); flex-shrink: 0;
+  }
+  .screen-content { flex: 1; padding: 16px; }
+  .s-nav-item {
+    padding: 7px 10px; border-radius: 8px; font-size: 11px; font-weight: 500;
+    color: rgba(255,255,255,0.5); margin-bottom: 3px; cursor: default;
+  }
+  .s-nav-item.active { background: var(--sky-500); color: white; }
+  .s-card {
+    background: white; border-radius: 10px; padding: 12px; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .s-card-label { font-size: 10px; color: var(--gray-600); }
+  .s-card-value { font-size: 18px; font-weight: 800; color: var(--sky-950); }
+  .s-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  /* ── conclusion stars ── */
+  .star-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 16px 20px; background: rgba(255,255,255,0.07);
+    border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 12px;
+  }
+  .star-icon { font-size: 22px; flex-shrink: 0; }
+  .star-title { font-weight: 700; font-size: 14px; color: white; }
+  .star-body  { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 3px; line-height: 1.5; }
+
+  /* ── title slide decoration ── */
+  .hero-orb {
+    position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0;
+  }
+  .slide > * { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ── -->
+<nav class="nav">
+  <span class="nav-brand">FinVerse · Graduate Demo Presentation</span>
+  <div class="nav-controls">
+    <button class="nav-btn" onclick="prev()">← Prev</button>
+    <span class="slide-counter" id="counter">1 / 17</span>
+    <button class="nav-btn" onclick="next()">Next →</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 1 — Title
+═════════════════════════════════════════════════════════════ -->
+<div class="slides">
+<div class="slide dark active" id="s1">
+  <div class="hero-orb" style="width:500px;height:500px;background:rgba(14,165,233,0.15);top:-100px;right:-100px;"></div>
+  <div class="hero-orb" style="width:300px;height:300px;background:rgba(124,58,237,0.1);bottom:0;left:100px;"></div>
+
+  <div style="margin-top:auto;margin-bottom:auto;">
+    <div class="label">Graduate Project · Individual Submission · May 2026</div>
+    <h1 style="max-width:720px;">FinVerse<br><span style="color:var(--sky-400);">Intelligent Personal<br>Finance Platform</span></h1>
+    <p class="sub">A full-stack, multi-module financial analytics application demonstrating real-time account aggregation, AI-powered insights, pattern detection, and predictive forecasting.</p>
+
+    <div class="mt-48" style="display:flex;gap:16px;flex-wrap:wrap;">
+      <span class="badge white">Next.js 15</span>
+      <span class="badge white">PostgreSQL + Prisma</span>
+      <span class="badge white">Claude AI (Anthropic)</span>
+      <span class="badge white">TypeScript</span>
+      <span class="badge white">BullMQ Worker</span>
+      <span class="badge white">RBAC + MFA</span>
+    </div>
+  </div>
+
+  <div class="mt-auto" style="display:flex;justify-content:space-between;align-items:flex-end;">
+    <div style="color:rgba(255,255,255,0.4);font-size:12px;">
+      Demo Date: April 29, 2026 &nbsp;·&nbsp; Paresh Pandit
+    </div>
+    <div style="color:rgba(255,255,255,0.25);font-size:11px;">17 slides</div>
+  </div>
+  <span class="slide-num" style="color:rgba(255,255,255,0.2);">01</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 2 — What is FinVerse
+═════════════════════════════════════════════════════════════ -->
+<div class="slide light" id="s2">
+  <div class="label">Overview</div>
+  <h2>What is FinVerse?</h2>
+  <p class="sub">A production-quality financial analytics platform that gives individuals a single, secure dashboard over all their financial accounts — with built-in intelligence for detection, forecasting, and advice.</p>
+
+  <div class="mt-32 cols-3" style="gap:20px;">
+    <div class="card">
+      <div class="card-title">📊 Aggregate</div>
+      <p style="font-size:13px;color:var(--gray-600);margin-top:8px;line-height:1.6;">Unifies checking, savings, credit cards, investment accounts, and loans into a single dashboard with real-time net worth tracking.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🔍 Detect</div>
+      <p style="font-size:13px;color:var(--gray-600);margin-top:8px;line-height:1.6;">Automatically identifies recurring subscriptions, spending anomalies, and budget overruns using rule-based and statistical algorithms.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🤖 Advise</div>
+      <p style="font-size:13px;color:var(--gray-600);margin-top:8px;line-height:1.6;">Generates AI-powered health reports, spending forecasts, debt payoff strategies, and tax estimates via Claude Sonnet 4.6.</p>
+    </div>
+  </div>
+
+  <div class="mt-32">
+    <div class="label">Core Problem Statement</div>
+    <p style="font-size:16px;max-width:720px;line-height:1.7;color:var(--gray-800);">
+      Most individuals manage finances across 5–8 disconnected accounts with no holistic view. FinVerse replaces spreadsheets and app-switching with a unified analytical platform that surfaces insights automatically — reducing the cognitive load of financial management.
+    </p>
+  </div>
+  <span class="slide-num">02</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 3 — System Architecture
+═════════════════════════════════════════════════════════════ -->
+<div class="slide tinted" id="s3">
+  <div class="label">Technical Foundation</div>
+  <h2>System Architecture</h2>
+
+  <div class="cols-2 mt-32" style="gap:48px;align-items:start;">
+    <div>
+      <div class="tech-layer" style="background:#f0f9ff;border:1px solid #bae6fd;">
+        <div class="tech-dot" style="background:var(--sky-500);"></div>
+        <span class="tech-name">Presentation Layer</span>
+        <span class="tech-items">Next.js 15 App Router · React 18 · Tailwind CSS · Recharts</span>
+      </div>
+      <div class="tech-layer" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+        <div class="tech-dot" style="background:var(--emerald-600);"></div>
+        <span class="tech-name">API Layer</span>
+        <span class="tech-items">Next.js Route Handlers · Zod validation · RBAC middleware · NextAuth v5 JWT</span>
+      </div>
+      <div class="tech-layer" style="background:#fff7ed;border:1px solid #fed7aa;">
+        <div class="tech-dot" style="background:var(--amber-500);"></div>
+        <span class="tech-name">Worker / AI Layer</span>
+        <span class="tech-items">BullMQ job queue · Redis · Claude Sonnet 4.6 · Tool-use pipeline</span>
+      </div>
+      <div class="tech-layer" style="background:#faf5ff;border:1px solid #e9d5ff;">
+        <div class="tech-dot" style="background:var(--violet-600);"></div>
+        <span class="tech-name">Data Layer</span>
+        <span class="tech-items">PostgreSQL · Prisma ORM · 27 models · BigInt monetary values</span>
+      </div>
+      <div class="tech-layer" style="background:#fff1f2;border:1px solid #fecdd3;">
+        <div class="tech-dot" style="background:var(--rose-500);"></div>
+        <span class="tech-name">Security Layer</span>
+        <span class="tech-items">AES-256-GCM encryption · MFA (TOTP) · CSP headers · 20+ granular permissions</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="card sky" style="margin-bottom:16px;">
+        <div class="card-title">Database Scale</div>
+        <div class="cols-2 mt-8">
+          <div><div style="font-size:24px;font-weight:800;color:var(--sky-950);">27</div><div style="font-size:11px;color:var(--gray-600);">Prisma Models</div></div>
+          <div><div style="font-size:24px;font-weight:800;color:var(--sky-950);">20+</div><div style="font-size:11px;color:var(--gray-600);">API Routes</div></div>
+          <div style="margin-top:12px;"><div style="font-size:24px;font-weight:800;color:var(--sky-950);">4</div><div style="font-size:11px;color:var(--gray-600);">RBAC Roles</div></div>
+          <div style="margin-top:12px;"><div style="font-size:24px;font-weight:800;color:var(--sky-950);">6</div><div style="font-size:11px;color:var(--gray-600);">Domain Packages</div></div>
+        </div>
+      </div>
+      <div class="card sky">
+        <div class="card-title">Monorepo Structure</div>
+        <div style="font-size:13px;color:var(--gray-600);margin-top:8px;line-height:2;">
+          <code style="background:white;padding:1px 6px;border-radius:4px;">apps/web</code> — Next.js dashboard<br>
+          <code style="background:white;padding:1px 6px;border-radius:4px;">apps/worker</code> — BullMQ AI worker<br>
+          <code style="background:white;padding:1px 6px;border-radius:4px;">packages/db</code> — Prisma schema + migrations<br>
+          <code style="background:white;padding:1px 6px;border-radius:4px;">packages/shared</code> — RBAC, money, validators<br>
+          <code style="background:white;padding:1px 6px;border-radius:4px;">packages/ui</code> — Design system components
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">03</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 4 — April 29 Demo: Core Features
+═════════════════════════════════════════════════════════════ -->
+<div class="slide light" id="s4">
+  <div class="label">April 29 Demo · Part 1 of 2</div>
+  <h2>Core Platform Features</h2>
+  <p style="margin-top:12px;color:var(--gray-600);font-size:15px;">Seven fully functional modules demonstrated end-to-end with live data.</p>
+
+  <div class="mt-32" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+
+    <div style="display:flex;gap:16px;padding:20px;background:var(--sky-50);border:1px solid var(--sky-200);border-radius:14px;">
+      <div style="font-size:28px;flex-shrink:0;">🏠</div>
+      <div>
+        <div class="lesson-title">Unified Dashboard</div>
+        <p style="font-size:13px;color:var(--gray-600);margin-top:4px;line-height:1.55;">7 linked accounts — checking ($6.2k), savings ($18.4k), 2 credit cards, Roth IRA, brokerage ($12.5k), auto loan. Net worth snapshot at $61.3k.</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;padding:20px;background:var(--sky-50);border:1px solid var(--sky-200);border-radius:14px;">
+      <div style="font-size:28px;flex-shrink:0;">📈</div>
+      <div>
+        <div class="lesson-title">Portfolio Tracker</div>
+        <p style="font-size:13px;color:var(--gray-600);margin-top:4px;line-height:1.55;">11 holdings across IRA + brokerage. Shows unrealized P&L per position ($13.3k total), asset class allocation pie chart, day-change tracking.</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;padding:20px;background:var(--sky-50);border:1px solid var(--sky-200);border-radius:14px;">
+      <div style="font-size:28px;flex-shrink:0;">💳</div>
+      <div>
+        <div class="lesson-title">Credit Score Trends</div>
+        <p style="font-size:13px;color:var(--gray-600);margin-top:4px;line-height:1.55;">6-month credit score trajectory (718→742), utilization breakdown, 3 linked credit accounts with payment status and next due dates.</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;padding:20px;background:var(--sky-50);border:1px solid var(--sky-200);border-radius:14px;">
+      <div style="font-size:28px;flex-shrink:0;">🎯</div>
+      <div>
+        <div class="lesson-title">Goal Management</div>
+        <p style="font-size:13px;color:var(--gray-600);margin-top:4px;line-height:1.55;">5 concurrent goals — Emergency Fund (51%), House Down Payment (22% — at risk), Roth IRA Max, Japan Trip (completed), Auto Loan payoff.</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;padding:20px;background:var(--sky-50);border:1px solid var(--sky-200);border-radius:14px;">
+      <div style="font-size:28px;flex-shrink:0;">📊</div>
+      <div>
+        <div class="lesson-title">Budget Management</div>
+        <p style="font-size:13px;color:var(--gray-600);margin-top:4px;line-height:1.55;">8-category monthly budget. Shopping at 192% (MacBook Air purchase — intentional demo spike). Bills at 91%, approaching limit.</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;padding:20px;background:var(--sky-50);border:1px solid var(--sky-200);border-radius:14px;">
+      <div style="font-size:28px;flex-shrink:0;">📝</div>
+      <div>
+        <div class="lesson-title">Net Worth History</div>
+        <p style="font-size:13px;color:var(--gray-600);margin-top:4px;line-height:1.55;">12-month snapshot trail ($32.6k → $61.3k). Line chart with asset/liability breakdown. Clear upward trend for demo impact.</p>
+      </div>
+    </div>
+
+  </div>
+  <span class="slide-num">04</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 5 — April 29 Demo: Advanced Analytics
+═════════════════════════════════════════════════════════════ -->
+<div class="slide tinted" id="s5">
+  <div class="label">April 29 Demo · Part 2 of 2</div>
+  <h2>Advanced Analytics Modules</h2>
+
+  <div class="cols-2 mt-32" style="gap:32px;">
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:22px;">🤖</span>
+          <h3>AI Financial Health Report</h3>
+        </div>
+        <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">Claude Sonnet 4.6 generates a structured 0–100 health score with <span class="badge rose" style="font-size:11px;padding:2px 8px;">Concerns</span>, <span class="badge emerald" style="font-size:11px;padding:2px 8px;">Strengths</span>, and <span class="badge sky" style="font-size:11px;padding:2px 8px;">Recommendations</span> rendered in a rich 3-column card. Demo score: 72/100 highlighting the MacBook budget breach and down payment risk.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:22px;">📅</span>
+          <h3>Spending Heatmap</h3>
+        </div>
+        <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">Month-view calendar where cell intensity (white→sky-800) maps to daily spend. Rent days and the MacBook day are visually distinct peaks. Click any cell to see merchant breakdown.</p>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:22px;">🔔</span>
+          <h3>Alert System</h3>
+        </div>
+        <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">4 rule types (budget breach, large transaction, spending threshold, bill due). 5 pre-seeded history events — 2 unread from the MacBook purchase triggering the $500 large-transaction rule and 192% shopping breach.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:22px;">🔄</span>
+          <h3>Recurring Detector</h3>
+        </div>
+        <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">Scans 90 days of transactions, groups by merchant, flags ≥2 charges with ≤10% amount variance as recurring. Detects 8 subscriptions: Netflix, Spotify, Hulu, AT&T, Planet Fitness, Shell, Starbucks, Trader Joe's — $120.94/month total.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:22px;">💰</span>
+          <h3>Debt Payoff Calculator</h3>
+        </div>
+        <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">3 seeded debts ($38k total). Real-time amortization slider — drag to adjust monthly payment, see payoff timeline and interest savings update instantly. Compares Avalanche vs Snowball strategies.</p>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:22px;">🧾</span>
+          <h3>Tax Estimator</h3>
+        </div>
+        <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">Pre-fills income from negative-amount transactions and capital gains from portfolio unrealized gains ($13.3k). Live 2024 federal bracket calculation + state flat rate. All math runs client-side, updates on every keystroke.</p>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">05</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 6 — Demo Workflow
+═════════════════════════════════════════════════════════════ -->
+<div class="slide dark" id="s6">
+  <div class="hero-orb" style="width:400px;height:400px;background:rgba(14,165,233,0.1);top:-80px;right:-60px;"></div>
+  <div class="label">User Journey</div>
+  <h2>Demo Workflow — April 29</h2>
+
+  <div class="mt-32 cols-2" style="gap:48px;align-items:start;">
+    <div>
+      <div class="flow" style="flex-direction:column;align-items:stretch;gap:0;">
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;">
+          <div style="background:var(--sky-500);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">1</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:white;">Authenticate</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:3px;line-height:1.55;">JWT-based login (demo@finverse.app). Session persists via HttpOnly cookie. Optional TOTP MFA for sensitive operations.</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;">
+          <div style="background:var(--sky-500);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">2</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:white;">Dashboard Overview</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:3px;line-height:1.55;">Single-page summary: net worth ($61.3k), 7 account balances, recent transactions, portfolio snapshot, and financial health card.</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;">
+          <div style="background:var(--sky-500);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">3</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:white;">Portfolio Analysis</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:3px;line-height:1.55;">Navigate to Portfolio → holdings table with per-position P&L, unrealized gains chart, asset allocation pie.</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;">
+          <div style="background:var(--sky-500);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">4</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:white;">Generate Health Report</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:3px;line-height:1.55;">Click "Generate Report" → BullMQ job → Claude AI analyzes 12 financial indicators → structured report returned in ~8 seconds.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;">
+        <div style="background:var(--sky-500);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">5</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:white;">Spending Intelligence</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:3px;line-height:1.55;">Heatmap reveals the MacBook spike on Day 9. Recurring detector surfaces 8 subscriptions. Budget shows 192% overage in Shopping.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;">
+        <div style="background:var(--sky-500);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">6</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:white;">Debt & Forecast</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:3px;line-height:1.55;">Debt page shows inline amortization slider. Forecast page shows 30-day spending projection at 78% confidence with upper/lower bounds.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;">
+        <div style="background:var(--sky-500);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">7</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:white;">Tax Estimation</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:3px;line-height:1.55;">Tax page pre-fills $21,600 income + $13.3k unrealized gains. Adjust filing status and state — real-time federal + state tax estimate.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:16px;">
+        <div style="background:var(--sky-500);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">8</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:white;">Alerts & Notifications</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:3px;line-height:1.55;">2 unread alerts highlighted in amber — MacBook triggered the large-transaction rule, and the shopping category breached 100% of budget.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num" style="color:rgba(255,255,255,0.2);">06</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 7 — Screenshot: Dashboard
+═════════════════════════════════════════════════════════════ -->
+<div class="slide light" id="s7">
+  <div class="label">Screenshot Reference · Slide 1 of 2</div>
+  <h2>Dashboard &amp; Portfolio Views</h2>
+
+  <div class="cols-2 mt-20" style="gap:28px;align-items:start;">
+    <!-- Mock Dashboard -->
+    <div>
+      <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-600);margin-bottom:10px;">Main Dashboard</p>
+      <div class="screenshot">
+        <div class="screen-bar">
+          <div class="dot" style="background:#ff5f57;"></div>
+          <div class="dot" style="background:#ffbd2e;"></div>
+          <div class="dot" style="background:#28c840;"></div>
+          <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:8px;">localhost:3000/dashboard</span>
+        </div>
+        <div class="screen-body">
+          <div class="screen-sidebar">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
+              <div style="width:20px;height:20px;background:var(--sky-500);border-radius:6px;"></div>
+              <span style="font-size:10px;font-weight:700;color:white;">FinVerse</span>
+            </div>
+            <div class="s-nav-item active">Overview</div>
+            <div class="s-nav-item">Accounts</div>
+            <div class="s-nav-item">Portfolio</div>
+            <div class="s-nav-item">Credit</div>
+            <div class="s-nav-item">Net Worth</div>
+            <div class="s-nav-item">Goals</div>
+            <div class="s-nav-item">Budgets</div>
+          </div>
+          <div class="screen-content">
+            <div style="font-size:10px;font-weight:700;color:var(--sky-950);margin-bottom:8px;">Good morning, Alex</div>
+            <div class="s-grid">
+              <div class="s-card"><div><div class="s-card-label">Net Worth</div><div class="s-card-value" style="font-size:14px;color:var(--emerald-600);">$61.3k</div></div></div>
+              <div class="s-card"><div><div class="s-card-label">Portfolio</div><div class="s-card-value" style="font-size:14px;">$53.2k</div></div></div>
+              <div class="s-card"><div><div class="s-card-label">Checking</div><div class="s-card-value" style="font-size:14px;">$6,247</div></div></div>
+              <div class="s-card"><div><div class="s-card-label">Savings</div><div class="s-card-value" style="font-size:14px;">$18.4k</div></div></div>
+            </div>
+            <div style="background:white;border-radius:8px;padding:8px;margin-top:8px;">
+              <div style="font-size:9px;font-weight:700;color:var(--gray-600);margin-bottom:4px;">RECENT TRANSACTIONS</div>
+              <div style="font-size:9px;color:var(--gray-600);">Apple Store — MacBook Air &nbsp;<span style="color:var(--rose-500);font-weight:700;">−$1,499</span></div>
+              <div style="font-size:9px;color:var(--gray-600);margin-top:3px;">Riverside Apts — Rent &nbsp;<span style="color:var(--rose-500);font-weight:700;">−$1,800</span></div>
+              <div style="font-size:9px;color:var(--gray-600);margin-top:3px;">Direct Deposit Payroll &nbsp;<span style="color:var(--emerald-600);font-weight:700;">+$7,200</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mock Portfolio -->
+    <div>
+      <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-600);margin-bottom:10px;">Portfolio / Trading View</p>
+      <div class="screenshot">
+        <div class="screen-bar">
+          <div class="dot" style="background:#ff5f57;"></div>
+          <div class="dot" style="background:#ffbd2e;"></div>
+          <div class="dot" style="background:#28c840;"></div>
+          <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:8px;">localhost:3000/trading</span>
+        </div>
+        <div class="screen-body">
+          <div class="screen-sidebar">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
+              <div style="width:20px;height:20px;background:var(--sky-500);border-radius:6px;"></div>
+              <span style="font-size:10px;font-weight:700;color:white;">FinVerse</span>
+            </div>
+            <div class="s-nav-item">Overview</div>
+            <div class="s-nav-item">Accounts</div>
+            <div class="s-nav-item active">Portfolio</div>
+            <div class="s-nav-item">Credit</div>
+            <div class="s-nav-item">Net Worth</div>
+          </div>
+          <div class="screen-content">
+            <div style="font-size:10px;font-weight:700;color:var(--sky-950);margin-bottom:8px;">Portfolio Overview</div>
+            <div class="s-grid">
+              <div class="s-card" style="grid-column:1/-1;"><div class="s-card-label">Total Value</div><div style="font-size:18px;font-weight:800;color:var(--sky-950);">$53,284</div><div style="font-size:9px;color:var(--emerald-600);font-weight:700;">+$13,251 unrealized</div></div>
+            </div>
+            <div style="background:white;border-radius:8px;padding:8px;margin-top:8px;">
+              <div style="font-size:9px;font-weight:700;color:var(--gray-600);margin-bottom:4px;">TOP HOLDINGS</div>
+              <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px;"><span style="font-weight:600;">VTI</span><span style="color:var(--emerald-600);">+$3,703 · +22.8%</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px;"><span style="font-weight:600;">NVDA</span><span style="color:var(--emerald-600);">+$1,810 · +144.8%</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px;"><span style="font-weight:600;">GOOGL</span><span style="color:var(--emerald-600);">+$1,460 · +36.6%</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:9px;"><span style="font-weight:600;">VXUS</span><span style="color:var(--rose-500);">−$228 · −5.8%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-20" style="font-size:13px;color:var(--gray-600);font-style:italic;">
+    ↑ Wireframe representations — actual screenshots of the running app show the full sky-950 design system with Recharts visualizations.
+  </div>
+  <span class="slide-num">07</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 8 — Screenshot: Analytics
+═════════════════════════════════════════════════════════════ -->
+<div class="slide tinted" id="s8">
+  <div class="label">Screenshot Reference · Slide 2 of 2</div>
+  <h2>Analytics &amp; Intelligence Views</h2>
+
+  <div class="cols-3 mt-20">
+    <!-- Heatmap mock -->
+    <div>
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-600);margin-bottom:8px;">Spending Heatmap</p>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--sky-950);margin-bottom:8px;">May 2026</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;">
+          <!-- Week headers -->
+          <div style="font-size:8px;text-align:center;color:var(--gray-600);">S</div>
+          <div style="font-size:8px;text-align:center;color:var(--gray-600);">M</div>
+          <div style="font-size:8px;text-align:center;color:var(--gray-600);">T</div>
+          <div style="font-size:8px;text-align:center;color:var(--gray-600);">W</div>
+          <div style="font-size:8px;text-align:center;color:var(--gray-600);">T</div>
+          <div style="font-size:8px;text-align:center;color:var(--gray-600);">F</div>
+          <div style="font-size:8px;text-align:center;color:var(--gray-600);">S</div>
+          <!-- Mock days with varying intensity -->
+          <div></div><div></div><div></div><div></div>
+          <div style="background:#bae6fd;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#38bdf8;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#e0f2fe;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#e0f2fe;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#38bdf8;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#f0f9ff;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#0284c7;border-radius:4px;aspect-ratio:1;" title="MacBook day"></div>
+          <div style="background:#e0f2fe;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#f0f9ff;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#bae6fd;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#38bdf8;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#e0f2fe;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#f0f9ff;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#e0f2fe;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#0c4a6e;border-radius:4px;aspect-ratio:1;" title="Rent day"></div>
+          <div style="background:#e0f2fe;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#bae6fd;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#f0f9ff;border-radius:4px;aspect-ratio:1;"></div>
+          <div style="background:#e0f2fe;border-radius:4px;aspect-ratio:1;"></div>
+        </div>
+        <div style="margin-top:10px;font-size:10px;color:var(--gray-600);">
+          <span style="font-weight:700;color:var(--sky-950);">Day 9:</span> $1,499 (MacBook) &nbsp;
+          <span style="font-weight:700;color:var(--sky-950);">Day 27:</span> $1,806 (Rent)
+        </div>
+      </div>
+    </div>
+
+    <!-- Recurring mock -->
+    <div>
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-600);margin-bottom:8px;">Recurring Detector</p>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--sky-950);margin-bottom:4px;">$120.94 / month detected</div>
+        <div style="font-size:9px;color:var(--gray-600);margin-bottom:10px;">8 subscriptions · 90-day window</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;">
+            <span style="font-weight:600;">AT&amp;T Wireless</span>
+            <span style="font-weight:700;color:var(--sky-950);">$85/mo</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;">
+            <span style="font-weight:600;">Starbucks</span>
+            <span style="font-weight:700;color:var(--sky-950);">$6.85/mo</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;">
+            <span style="font-weight:600;">Hulu</span>
+            <span style="font-weight:700;color:var(--sky-950);">$17.99/mo</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;">
+            <span style="font-weight:600;">Netflix</span>
+            <span style="font-weight:700;color:var(--sky-950);">$15.49/mo</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;opacity:0.5;">
+            <span>+ 4 more…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tax mock -->
+    <div>
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-600);margin-bottom:8px;">Tax Estimator</p>
+      <div class="card" style="background:var(--sky-950);color:white;">
+        <div style="font-size:10px;font-weight:600;opacity:0.6;margin-bottom:4px;">ESTIMATED TOTAL TAX</div>
+        <div style="font-size:28px;font-weight:800;">$3,847</div>
+        <div style="font-size:10px;opacity:0.6;margin-bottom:14px;">Effective rate: 14.2%</div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">
+            <span style="opacity:0.7;">Federal Income</span>
+            <span style="font-weight:600;">$2,614</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">
+            <span style="opacity:0.7;">Cap. Gains (LT)</span>
+            <span style="font-weight:600;">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;">
+            <span style="opacity:0.7;">State (CA 9.3%)</span>
+            <span style="font-weight:600;">$1,233</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:10px;opacity:0.6;">Quarterly estimate: $962</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-20" style="font-size:13px;color:var(--gray-600);font-style:italic;">
+    ↑ Wireframe representations — actual app renders these with live Prisma data, recharts visualizations, and the full Tailwind sky design system.
+  </div>
+  <span class="slide-num">08</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 9 — What Was Built: Backend
+═════════════════════════════════════════════════════════════ -->
+<div class="slide light" id="s9">
+  <div class="label">What Was Built · Part 1 of 3</div>
+  <h2>Backend &amp; Data Architecture</h2>
+
+  <div class="cols-2 mt-32" style="gap:40px;align-items:start;">
+    <div>
+      <h3 style="margin-bottom:16px;color:var(--sky-950);">Database Schema (27 Models)</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="module"><div class="module-title">Identity Domain</div><div class="module-desc">User, Organization, Membership, Session, MfaSecret, AuditLog</div><div class="module-tag">6 models</div></div>
+        <div class="module"><div class="module-title">Financial Domain</div><div class="module-desc">FinancialAccount, Transaction, Holding, Security, Liability, NetWorthSnapshot</div><div class="module-tag">6 models</div></div>
+        <div class="module"><div class="module-title">Planning Domain</div><div class="module-desc">Goal, Budget, BudgetCategory, DebtAccount, PayoffStrategy, PayoffPlan</div><div class="module-tag">6 models</div></div>
+        <div class="module"><div class="module-title">Intelligence Domain</div><div class="module-desc">Insight, SpendingForecast, AlertRule, AlertHistory, CreditScore, CreditAccount, CreditHistory</div><div class="module-tag">7 models</div></div>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="margin-bottom:16px;color:var(--sky-950);">Key Engineering Decisions</h3>
+      <div class="lesson" style="margin-bottom:12px;">
+        <div class="lesson-num">$</div>
+        <div><div class="lesson-title">BigInt for All Money</div><div class="lesson-body">Every monetary value stored as integer cents in BigInt — never floats. Eliminates IEEE 754 rounding errors. Explicit conversion at every JSON boundary.</div></div>
+      </div>
+      <div class="lesson" style="margin-bottom:12px;">
+        <div class="lesson-num">🔒</div>
+        <div><div class="lesson-title">RBAC with 20+ Permissions</div><div class="lesson-body">4 roles (Owner, Admin, Member, Viewer) × granular permissions checked on every API route. MFA required for sensitive mutations.</div></div>
+      </div>
+      <div class="lesson" style="margin-bottom:12px;">
+        <div class="lesson-num">⚡</div>
+        <div><div class="lesson-title">AI via Tool-Use Pipeline</div><div class="lesson-body">BullMQ job enqueues analysis requests. Worker calls Claude with 12 financial tools (get_spending_by_category, get_portfolio_summary, etc.) — structured JSON returned.</div></div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num">🌱</div>
+        <div><div class="lesson-title">Production-Ready Seed</div><div class="lesson-body">99 realistic transactions, 11 holdings, 5 goals, 3 debts, 4 alert rules, 3 AI insights — all idempotent and designed to make every feature immediately demo-ready.</div></div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">09</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 10 — What Was Built: Algorithms
+═════════════════════════════════════════════════════════════ -->
+<div class="slide tinted" id="s10">
+  <div class="label">What Was Built · Part 2 of 3</div>
+  <h2>Algorithms &amp; Detection Logic</h2>
+
+  <div class="cols-2 mt-32" style="gap:32px;">
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin-bottom:10px;">🔄 Recurring Transaction Detector</h3>
+        <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-bottom:10px;">Groups last 90 days of transactions by normalized merchant name. For each group with ≥2 charges, computes average amount and checks:</p>
+        <div style="background:var(--sky-50);border:1px solid var(--sky-200);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:var(--sky-950);">
+          maxDeviation = max(|aᵢ − avg| / avg)<br>
+          if maxDeviation ≤ 0.10 → RECURRING<br>
+          monthlyCost = (avg × 30) / (90 / count)
+        </div>
+        <p style="font-size:12px;color:var(--gray-600);margin-top:8px;">Detected 8 subscriptions in demo data. Exposed both in the web API and as a Claude tool for AI insights.</p>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:10px;">📉 Debt Amortization Calculator</h3>
+        <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-bottom:10px;">Client-side real-time amortization — no API round-trip required:</p>
+        <div style="background:var(--sky-50);border:1px solid var(--sky-200);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:var(--sky-950);">
+          while balance > 0 and months < 600:<br>
+          &nbsp;&nbsp;interest = balance × (APR/12)<br>
+          &nbsp;&nbsp;balance += interest − payment<br>
+          &nbsp;&nbsp;months++
+        </div>
+        <p style="font-size:12px;color:var(--gray-600);margin-top:8px;">Slider drag triggers recalculation in &lt;1ms. Compares minimum-payment vs accelerated scenarios in real time.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin-bottom:10px;">📊 Spending Forecast (Linear Regression)</h3>
+        <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-bottom:10px;">Aggregates 90 days of expense transactions into daily buckets. Computes:</p>
+        <div style="background:var(--sky-50);border:1px solid var(--sky-200);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:var(--sky-950);">
+          mean = Σ(dailyAmount) / n<br>
+          trend = (recent30Avg − older30Avg) / older30Avg<br>
+          projection[i] = recent30Avg × (1 + trend × i/30)<br>
+          confidence = 1 − (σ/mean)  [clamped 0.3–0.95]
+        </div>
+        <p style="font-size:12px;color:var(--gray-600);margin-top:8px;">Persisted to SpendingForecast table with confidence score, upper/lower bounds, and methodology tag.</p>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:10px;">🧾 Tax Estimation Engine</h3>
+        <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-bottom:10px;">2024 federal progressive brackets + 22 state flat-rate approximations. Long-term capital gains stacked on ordinary income to find the marginal LTCG rate:</p>
+        <div style="background:var(--sky-50);border:1px solid var(--sky-200);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:var(--sky-950);">
+          taxableIncome = gross − stdDeduction<br>
+          federalTax = bracketTax(taxableIncome)<br>
+          ltcgTax = bracketTax(income+gains) − bracketTax(income)<br>
+          stateTax = taxableIncome × stateRate
+        </div>
+        <p style="font-size:12px;color:var(--gray-600);margin-top:8px;">All calculation runs on the client — no server latency. Pre-fills income and gains from live Prisma queries.</p>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">10</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 11 — What Was Built: UI System
+═════════════════════════════════════════════════════════════ -->
+<div class="slide light" id="s11">
+  <div class="label">What Was Built · Part 3 of 3</div>
+  <h2>UI Design System &amp; Module Coverage</h2>
+
+  <div class="cols-2 mt-28" style="gap:40px;align-items:start;">
+    <div>
+      <h3 style="margin-bottom:14px;color:var(--sky-950);">Sky Design System</h3>
+      <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-bottom:16px;">All 14 modules share a consistent token-based design language built on Tailwind with a custom sky-950 palette:</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="background:#082f49;color:white;padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;">sky-950 Primary</div>
+        <div style="background:#0ea5e9;color:white;padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;">sky-500 Accent</div>
+        <div style="background:#e0f2fe;color:#0c4a6e;padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;">sky-100 Surface</div>
+        <div style="background:#f43f5e;color:white;padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;">rose Danger</div>
+        <div style="background:#059669;color:white;padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;">emerald Success</div>
+        <div style="background:#f59e0b;color:white;padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;">amber Warning</div>
+      </div>
+
+      <h3 style="margin-bottom:14px;color:var(--sky-950);">14 Complete Modules</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">🏠 Dashboard</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">💳 Accounts</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">📈 Portfolio</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">⭐ Credit</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">📊 Net Worth</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">🎯 Goals</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">💰 Budgets</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">📅 Heatmap</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">🔄 Recurring</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">📉 Debt</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">🔔 Alerts</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">📡 Forecast</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">🧾 Tax</div>
+        <div style="font-size:12px;padding:6px 10px;background:var(--sky-50);border-radius:8px;border:1px solid var(--sky-200);">🤖 Insights</div>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="margin-bottom:14px;color:var(--sky-950);">Navigable Sidebar</h3>
+      <div style="background:var(--sky-950);border-radius:16px;padding:20px;max-width:220px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.08);">
+          <div style="background:var(--sky-500);width:28px;height:28px;border-radius:8px;"></div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:white;">FinVerse</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.4);">Johnson Household</div>
+          </div>
+        </div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3);margin-bottom:8px;">Navigation</div>
+        <div style="background:var(--sky-500);color:white;padding:7px 10px;border-radius:10px;font-size:11px;font-weight:600;margin-bottom:3px;">🏠 Overview</div>
+        <div style="color:rgba(255,255,255,0.5);padding:7px 10px;border-radius:10px;font-size:11px;margin-bottom:3px;">📈 Portfolio</div>
+        <div style="color:rgba(255,255,255,0.5);padding:7px 10px;border-radius:10px;font-size:11px;margin-bottom:3px;">📊 Net Worth</div>
+        <div style="color:rgba(255,255,255,0.5);padding:7px 10px;border-radius:10px;font-size:11px;margin-bottom:3px;">🎯 Goals</div>
+        <div style="color:rgba(255,255,255,0.5);padding:7px 10px;border-radius:10px;font-size:11px;margin-bottom:3px;">💰 Budgets</div>
+        <div style="color:rgba(255,255,255,0.5);padding:7px 10px;border-radius:10px;font-size:11px;margin-bottom:3px;">🔔 Alerts</div>
+        <div style="color:rgba(255,255,255,0.5);padding:7px 10px;border-radius:10px;font-size:11px;">…10 more</div>
+      </div>
+
+      <div class="mt-20">
+        <h3 style="margin-bottom:12px;color:var(--sky-950);">UI Patterns Used</h3>
+        <div style="font-size:13px;color:var(--gray-600);line-height:2;">
+          ✦ Server components for initial data load (budgets, portfolio)<br>
+          ✦ Client components for interactivity (debt slider, heatmap)<br>
+          ✦ Inline dialogs (no external component dependencies)<br>
+          ✦ Progressive disclosure (expand/collapse on cards)<br>
+          ✦ Real-time computation (tax, amortization — zero latency)
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">11</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 12 — Lessons: Technical
+═════════════════════════════════════════════════════════════ -->
+<div class="slide tinted" id="s12">
+  <div class="label">Lessons Learned · Part 1 of 2</div>
+  <h2>Technical Lessons</h2>
+
+  <div class="cols-2 mt-28" style="gap:28px;">
+    <div>
+      <div class="lesson">
+        <div class="lesson-num">1</div>
+        <div>
+          <div class="lesson-title">Prisma Schema ≠ Generated Client</div>
+          <div class="lesson-body">Adding a field (e.g., <code>subtype</code> or <code>forecastType @map("forecast_type")</code>) to the schema requires three coordinated steps: run a migration, regenerate the client, and restart the server. Skipping any step produces silent P2022 column-not-found errors at runtime — not at compile time. This taught me that schema-first development demands a strict change management discipline.</div>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num">2</div>
+        <div>
+          <div class="lesson-title">pnpm Workspaces Have Non-Obvious Resolution Rules</div>
+          <div class="lesson-body">In a monorepo, each package resolves dependencies from its own node_modules first. The Prisma client generated at the workspace root wasn't visible to sub-packages using a local stub, causing TypeScript and runtime divergence. The fix required either a custom <code>output</code> path or an explicit symlink — non-obvious without deep knowledge of pnpm's hoisting strategy.</div>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num">3</div>
+        <div>
+          <div class="lesson-title">JSON Cannot Serialize BigInt or Prisma Decimal</div>
+          <div class="lesson-body"><code>JSON.stringify()</code> throws on BigInt and silently coerces Prisma <code>Decimal</code> objects to strings. Every API route boundary required explicit <code>Number()</code> and <code>centsToDollars()</code> conversions — a systematic issue that surfaced in 6 different routes. Naming all money fields <code>*Cents</code> in the shared types layer would have caught this earlier.</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="lesson">
+        <div class="lesson-num">4</div>
+        <div>
+          <div class="lesson-title">Browser Session State Outlives Database Resets</div>
+          <div class="lesson-body">After a <code>db:reset</code>, existing JWT cookies in the browser still validate (same AUTH_SECRET) but reference stale user UUIDs. The dashboard resolved no organization membership and silently redirect-looped. The fix: clear the session <em>before</em> re-authenticating, and redirect to signout (not login) when org lookup fails.</div>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num">5</div>
+        <div>
+          <div class="lesson-title">Zod Validator Chaining Order Matters</div>
+          <div class="lesson-body"><code>z.number().default(90).min(30)</code> throws at module load time — <code>.default()</code> returns a <code>ZodDefault</code>, not a <code>ZodNumber</code>, so <code>.min()</code> is undefined. The correct order is <code>z.number().min(30).max(365).default(90)</code>. This crashed the forecast route on every cold start — a module-level error that blocked all 500 diagnostics.</div>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num">6</div>
+        <div>
+          <div class="lesson-title">Client Components Need Explicit Dep Arrays</div>
+          <div class="lesson-body">Several <code>useEffect</code> hooks fetched data on mount with <code>[]</code> dependencies while using props (like <code>organizationId</code>) that were set asynchronously. Race conditions meant the component sometimes rendered with stale data. Splitting into two effects — one for orgId, one for data — resolved the ordering guarantee.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">12</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 13 — Lessons: Design & Product
+═════════════════════════════════════════════════════════════ -->
+<div class="slide light" id="s13">
+  <div class="label">Lessons Learned · Part 2 of 2</div>
+  <h2>Design, Product &amp; Architecture Lessons</h2>
+
+  <div class="cols-2 mt-28" style="gap:28px;">
+    <div>
+      <div class="lesson">
+        <div class="lesson-num" style="background:var(--emerald-600);">A</div>
+        <div>
+          <div class="lesson-title">Seed Data Is a First-Class Feature</div>
+          <div class="lesson-body">Early prototypes failed demos because analytical features (heatmap, recurring, forecasting) require <em>dense, realistic data</em> to be meaningful. A sparse or uniform seed gives no visual payoff. The final seed contains 99 transactions deliberately designed to create heatmap peaks, 8 recurring subscriptions, a 192% budget spike, and a 12-month net worth uptrend — all chosen to tell a story.</div>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num" style="background:var(--emerald-600);">B</div>
+        <div>
+          <div class="lesson-title">Progressive Disclosure Beats Feature Dumping</div>
+          <div class="lesson-body">Early versions crammed all debt details into a single scrollable card with a separate dialog for strategy generation. Users had to navigate away to see results. The redesign — summary KPIs at top, per-debt cards with expand/collapse, inline slider calculator — kept everything in one mental context, dramatically reducing cognitive load during the demo.</div>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num" style="background:var(--emerald-600);">C</div>
+        <div>
+          <div class="lesson-title">Design Systems Pay Compound Interest</div>
+          <div class="lesson-body">The first 4 modules were built with generic shadcn defaults (<code>text-muted-foreground</code>, <code>bg-muted</code>). When a unified sky-950 design system was applied, each subsequent module took ~40% less time to style because every decision (color, radius, shadow, spacing) was already resolved. Token-first thinking is not premature abstraction — it's prerequisite infrastructure.</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="lesson">
+        <div class="lesson-num" style="background:var(--emerald-600);">D</div>
+        <div>
+          <div class="lesson-title">Client-Side Computation Beats API Latency for Interactive Tools</div>
+          <div class="lesson-body">The debt amortization slider and tax estimator originally made API calls on every input change. The latency (even at 50ms) made sliders feel laggy. Moving the math entirely to the client — pure JavaScript functions run in &lt;1ms — made both features feel instantaneous. The only server call needed is the initial data fetch.</div>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num" style="background:var(--emerald-600);">E</div>
+        <div>
+          <div class="lesson-title">Error Surfaces Should Diagnose, Not Just Report</div>
+          <div class="lesson-body">The forecast route returned generic 500s for weeks. Adding <code>try/catch</code> with <code>console.error</code> and propagating the actual error message to the client immediately revealed the Zod chaining bug. Opaque 500 responses are debugging debt — investing 15 minutes in structured error handling saves hours of diagnostics.</div>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num" style="background:var(--emerald-600);">F</div>
+        <div>
+          <div class="lesson-title">Architecture Decisions Have Long Shadows</div>
+          <div class="lesson-body">The decision to store all monetary values as integer cents (BigInt) prevented all floating-point precision bugs but required explicit conversion at every JSON boundary. The decision to use a pnpm monorepo enabled shared code but added Prisma resolution complexity. Each tradeoff compounded — early decisions should be treated as load-bearing walls.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">13</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 14 — Big Data: Current Scale
+═════════════════════════════════════════════════════════════ -->
+<div class="slide dark" id="s14">
+  <div class="hero-orb" style="width:500px;height:500px;background:rgba(14,165,233,0.08);bottom:-100px;right:-100px;"></div>
+  <div class="label">Big Data Analysis · Part 1 of 3</div>
+  <h2>Current Scale &amp; Bottlenecks</h2>
+
+  <div class="cols-2 mt-32" style="gap:48px;align-items:start;">
+    <div>
+      <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:20px;line-height:1.6;">FinVerse currently operates at household scale — synchronous queries, in-memory computation, single-node PostgreSQL. This section analyzes where the architecture breaks under real-world load.</p>
+
+      <div class="dark-card" style="margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--sky-400);margin-bottom:12px;">Current Data Profile (1 user)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div><div style="font-size:28px;font-weight:800;color:white;">99</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">transactions / demo</div></div>
+          <div><div style="font-size:28px;font-weight:800;color:white;">11</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">portfolio holdings</div></div>
+          <div><div style="font-size:28px;font-weight:800;color:white;">12</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">net worth snapshots</div></div>
+          <div><div style="font-size:28px;font-weight:800;color:white;">~2ms</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">avg query time</div></div>
+        </div>
+      </div>
+
+      <div class="dark-card">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--rose-500);margin-bottom:12px;">At 10M Users × 500 txn/year</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div><div style="font-size:24px;font-weight:800;color:white;">5B</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">transaction rows</div></div>
+          <div><div style="font-size:24px;font-weight:800;color:white;">120B</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">net worth snapshots/yr</div></div>
+          <div><div style="font-size:24px;font-weight:800;color:white;">>30s</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">recurring detection</div></div>
+          <div><div style="font-size:24px;font-weight:800;color:white;">$2M+</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">Claude API cost/yr</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:14px;">Breaking Points</div>
+
+      <div class="bd-tier" style="background:rgba(244,63,94,0.1);border-color:var(--rose-500);margin-bottom:12px;">
+        <div class="bd-title" style="color:white;">🔴 Full-Table Scans for Recurring Detection</div>
+        <div class="bd-body" style="color:rgba(255,255,255,0.55);">The current 90-day merchant grouping query requires scanning every transaction row for the org. At 5B rows this is a table scan disaster — no index helps a GROUP BY merchantName across partitions.</div>
+      </div>
+
+      <div class="bd-tier" style="background:rgba(245,158,11,0.1);border-color:var(--amber-500);margin-bottom:12px;">
+        <div class="bd-title" style="color:white;">🟡 Budget Aggregation on Every Page Load</div>
+        <div class="bd-body" style="color:rgba(255,255,255,0.55);">Budget spent amounts are read from the BudgetCategory table which is updated by a background job. At scale, this job queue cannot keep pace with real-time transaction ingest without pre-aggregated materialized views.</div>
+      </div>
+
+      <div class="bd-tier" style="background:rgba(14,165,233,0.1);border-color:var(--sky-500);margin-bottom:12px;">
+        <div class="bd-title" style="color:white;">🔵 Per-User AI Insight Generation</div>
+        <div class="bd-body" style="color:rgba(255,255,255,0.55);">Each health report calls Claude with ~3,000 input tokens. At 10M users generating weekly reports: 1.56T tokens/year — approximately $2M at current API pricing. Requires batching, caching, and model distillation strategies.</div>
+      </div>
+
+      <div class="bd-tier" style="background:rgba(124,58,237,0.1);border-color:var(--violet-600);">
+        <div class="bd-title" style="color:white;">🟣 Synchronous Forecast Computation</div>
+        <div class="bd-body" style="color:rgba(255,255,255,0.55);">Linear regression over 90 days of daily data is computed on-demand per request. At scale, forecasts must be pre-computed in batch overnight and cached — not recomputed per page load.</div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num" style="color:rgba(255,255,255,0.2);">14</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 15 — Big Data: Infrastructure Solutions
+═════════════════════════════════════════════════════════════ -->
+<div class="slide tinted" id="s15">
+  <div class="label">Big Data Analysis · Part 2 of 3</div>
+  <h2>Infrastructure Solutions at Scale</h2>
+
+  <div class="cols-2 mt-28" style="gap:32px;">
+    <div>
+      <h3 style="margin-bottom:16px;color:var(--sky-950);">Data Processing Pipeline</h3>
+
+      <div class="bd-tier" style="margin-bottom:14px;">
+        <div class="bd-title">Apache Kafka — Real-Time Event Streaming</div>
+        <div class="bd-body">Transaction events published to <code>finverse.transactions</code> topic. Alert rule evaluation, budget aggregation, and anomaly detection subscribe as independent consumer groups. Eliminates the polling-based BullMQ approach that can't sustain millions of concurrent users.</div>
+      </div>
+
+      <div class="bd-tier emerald" style="margin-bottom:14px;">
+        <div class="bd-title">Apache Spark — Batch Analytics</div>
+        <div class="bd-body">Nightly Spark jobs process the full transaction corpus: recurring detection as a distributed GroupBy, spending pattern clustering via k-means, and forecast pre-computation via distributed linear regression across partitioned user data. Replaces the synchronous per-request computations.</div>
+      </div>
+
+      <div class="bd-tier amber" style="margin-bottom:14px;">
+        <div class="bd-title">Data Warehouse (Snowflake / BigQuery)</div>
+        <div class="bd-body">Separate OLAP tier from the PostgreSQL OLTP. Transaction history, net worth snapshots, and portfolio valuations land in columnar storage optimized for aggregation queries. The dashboard reads pre-aggregated summary tables — not live transaction rows.</div>
+      </div>
+
+      <div class="bd-tier rose">
+        <div class="bd-title">Delta Lake / Parquet — Time-Series Storage</div>
+        <div class="bd-body">Net worth snapshots and daily portfolio valuations stored in Parquet partitioned by (user_id, year, month). ACID transactions via Delta Lake protocol enable point-in-time queries without full scans. Reduces net worth history queries from O(rows) to O(partitions).</div>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="margin-bottom:16px;color:var(--sky-950);">Caching &amp; Serving Strategy</h3>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px;">Redis Distributed Cache</div>
+        <div style="font-size:13px;color:var(--gray-600);line-height:1.6;">Pre-computed results stored with TTL: budget aggregations (5 min), recurring subscriptions (24 hr), forecast data (12 hr), net worth snapshots (1 hr). Cache invalidation triggered via Kafka events on new transaction ingest.</div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px;">PostgreSQL Read Replicas</div>
+        <div style="font-size:13px;color:var(--gray-600);line-height:1.6;">The OLTP layer scales reads via streaming replication. Write operations (new transactions, goal updates) go to the primary. Dashboard reads, portfolio queries, and credit lookups route to read replicas — eliminating read/write contention.</div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px;">Materialized Views for Aggregations</div>
+        <div style="font-size:13px;color:var(--gray-600);line-height:1.6;">Budget category spending, monthly net worth, and per-category transaction totals pre-computed as PostgreSQL materialized views. Refreshed incrementally on transaction insert via Kafka consumer — not on every page load.</div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px;">AI Cost Optimization</div>
+        <div style="font-size:13px;color:var(--gray-600);line-height:1.6;">Embed user spending patterns as 768-dim vectors (via smaller embedding model). Batch similar users together. Use Claude only for final narrative generation on pre-computed numerical summaries — reducing per-user token consumption by ~80%.</div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">15</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 16 — Big Data: Transformative Opportunities
+═════════════════════════════════════════════════════════════ -->
+<div class="slide light" id="s16">
+  <div class="label">Big Data Analysis · Part 3 of 3</div>
+  <h2>Transformative Opportunities at Population Scale</h2>
+  <p style="margin-top:10px;color:var(--gray-600);font-size:15px;max-width:640px;">Big data doesn't just solve the scaling problem — it enables entirely new product capabilities impossible with single-user data.</p>
+
+  <div class="cols-3 mt-28">
+    <div class="card sky">
+      <div style="font-size:28px;margin-bottom:8px;">🏘️</div>
+      <h3 style="margin-bottom:8px;">Peer Benchmarking</h3>
+      <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">"Your food spending ($509/mo) is 34% above households with similar income in your metro area." Cross-user analytics (privacy-preserving via k-anonymity / differential privacy) transforms individual dashboards into contextualized intelligence.</p>
+      <div class="module-tag">Requires: Spark aggregations + census cohort modeling</div>
+    </div>
+
+    <div class="card sky">
+      <div style="font-size:28px;margin-bottom:8px;">🔍</div>
+      <h3 style="margin-bottom:8px;">ML Fraud Detection</h3>
+      <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">Isolation Forest over transaction vectors (merchant, amount, time, location) trained on 5B+ labeled transactions. Detects anomalous charges in real time — a feature impossible without population-scale training data.</p>
+      <div class="module-tag">Requires: Kafka streams + model serving (Seldon/BentoML)</div>
+    </div>
+
+    <div class="card sky">
+      <div style="font-size:28px;margin-bottom:8px;">📉</div>
+      <h3 style="margin-bottom:8px;">Predictive Credit Modeling</h3>
+      <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">Feature engineer 40+ signals from spending patterns, payment timing, and balance trajectories. Train gradient boosted classifier to predict credit score change 60 days in advance — actionable, not retrospective.</p>
+      <div class="module-tag">Requires: Feature store + XGBoost pipeline</div>
+    </div>
+
+    <div class="card sky">
+      <div style="font-size:28px;margin-bottom:8px;">📊</div>
+      <h3 style="margin-bottom:8px;">Market Correlation Engine</h3>
+      <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">Correlate portfolio holdings with macro indicators (CPI, Fed rate decisions, sector ETF flows). When SPY drops 3%, proactively surface "Your NVDA position is correlated at 0.84 with NASDAQ — consider rebalancing."</p>
+      <div class="module-tag">Requires: Time-series DB + financial data APIs</div>
+    </div>
+
+    <div class="card sky">
+      <div style="font-size:28px;margin-bottom:8px;">🤖</div>
+      <h3 style="margin-bottom:8px;">Personalized AI Distillation</h3>
+      <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">Fine-tune a smaller model (Haiku-class) on FinVerse-specific financial reasoning using RLHF from user feedback signals on insight cards. Reduces inference cost by 10× vs Claude Sonnet while maintaining domain accuracy.</p>
+      <div class="module-tag">Requires: SFT pipeline + feedback telemetry</div>
+    </div>
+
+    <div class="card sky">
+      <div style="font-size:28px;margin-bottom:8px;">🔔</div>
+      <h3 style="margin-bottom:8px;">Proactive Alert Intelligence</h3>
+      <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">Current alerts are rule-based thresholds. With population data, alerts become ML-driven: "Your gym membership ($25) has been unused for 47 days — 89% of users in this situation cancel within 60 days. Act now?"</p>
+      <div class="module-tag">Requires: Behavioral cohort analysis + Kafka streaming</div>
+    </div>
+  </div>
+  <span class="slide-num">16</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 17 — Conclusion
+═════════════════════════════════════════════════════════════ -->
+<div class="slide dark" id="s17">
+  <div class="hero-orb" style="width:600px;height:600px;background:rgba(14,165,233,0.08);top:-150px;right:-150px;"></div>
+  <div class="hero-orb" style="width:350px;height:350px;background:rgba(124,58,237,0.06);bottom:-50px;left:-50px;"></div>
+
+  <div class="label">Conclusion</div>
+  <h2 style="max-width:700px;">FinVerse: From Prototype to<br><span style="color:var(--sky-400);">Production-Grade Platform</span></h2>
+
+  <div class="cols-2 mt-32" style="gap:40px;align-items:start;">
+    <div>
+      <div class="star-item">
+        <div class="star-icon">🏗️</div>
+        <div><div class="star-title">Full-Stack Engineering Depth</div><div class="star-body">Built end-to-end: database schema design, API architecture, authentication, background processing, AI integration, and a 14-module UI — demonstrating production-quality engineering across the entire stack.</div></div>
+      </div>
+      <div class="star-item">
+        <div class="star-icon">🧠</div>
+        <div><div class="star-title">Algorithms Applied to Real Data</div><div class="star-body">Recurring detection, linear regression forecasting, amortization simulation, and tax bracket calculation — all implemented from first principles, not library wrappers. Grounded in real financial mathematics.</div></div>
+      </div>
+      <div class="star-item">
+        <div class="star-icon">🔬</div>
+        <div><div class="star-title">Big Data Readiness Analysis</div><div class="star-body">Systematically identified where the current synchronous, single-node architecture fails at population scale, and mapped specific infrastructure solutions (Kafka, Spark, Delta Lake, Redis) to each bottleneck.</div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="dark-card" style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--sky-400);margin-bottom:16px;">Key Metrics</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="kpi"><div class="kpi-val" style="font-size:32px;">14</div><div class="kpi-lbl">Feature Modules</div></div>
+          <div class="kpi"><div class="kpi-val" style="font-size:32px;">27</div><div class="kpi-lbl">DB Models</div></div>
+          <div class="kpi"><div class="kpi-val" style="font-size:32px;">20+</div><div class="kpi-lbl">API Routes</div></div>
+          <div class="kpi"><div class="kpi-val" style="font-size:32px;">4</div><div class="kpi-lbl">Algorithms Built</div></div>
+        </div>
+      </div>
+
+      <div class="dark-card">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--sky-400);margin-bottom:12px;">Tech Stack Summary</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:2.2;">
+          <span class="badge white" style="font-size:10px;margin:2px;">Next.js 15</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">React 18</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">TypeScript</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">PostgreSQL</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">Prisma ORM</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">Claude AI</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">BullMQ</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">Redis</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">NextAuth v5</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">Recharts</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">Tailwind CSS</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">Zod</span>
+          <span class="badge white" style="font-size:10px;margin:2px;">pnpm Workspaces</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-auto" style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:32px;">
+    <div style="color:rgba(255,255,255,0.35);font-size:12px;">Paresh Pandit · Graduate Submission · May 2026</div>
+    <div style="color:rgba(255,255,255,0.2);font-size:11px;">demo@finverse.app / Demo@2024</div>
+  </div>
+  <span class="slide-num" style="color:rgba(255,255,255,0.2);">17</span>
+</div>
+
+</div><!-- /slides -->
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+
+  function show(n) {
+    slides[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    window.scrollTo(0, 0);
+  }
+
+  function next() { show(current + 1); }
+  function prev() { show(current - 1); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    { e.preventDefault(); prev(); }
+  });
+</script>
+</body>
+</html>
