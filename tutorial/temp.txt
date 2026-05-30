@@ -1,0 +1,40 @@
+Act as an expert Full-Stack Application Architect and Lead Machine Learning Engineer. >
+Your objective is to design and write the core code for a Poultry Disease Detection Application. This system will allow farmers to take photos of poultry using their mobile devices and use a Convolutional Neural Network (CNN) to classify the images into healthy or diseased categories (e.g., Coccidiosis, Salmonella, Newcastle Disease).
+
+Please provide a comprehensive app development plan and functional code snippets covering the following areas:
+
+1. System Architecture & Monorepo Structure
+
+Design a scalable monorepo directory structure that houses the mobile app, web dashboard, backend API, and the ML training pipeline.
+
+Outline the tech stack you recommend for this specific use case (e.g., React Native/Expo for mobile, Next.js for a web dashboard, FastAPI for the model serving).
+
+2. Mobile App Frontend (Cross-Platform)
+
+Write the core React Native (or Flutter) code for the main application screens.
+
+Include the camera integration code that allows users to snap a photo or upload from their gallery.
+
+Implement an "offline-first" or edge-capable architecture: how should the app cache images or queue requests if the user is in a barn with zero internet connectivity?
+
+3. Machine Learning Backend & API Integration
+
+Write a FastAPI server script that exposes an endpoint (e.g., /predict) to receive multipart/form-data images from the mobile app.
+
+Show the Python code for how the incoming image is preprocessed (resized, normalized) and passed to a pre-trained PyTorch or TensorFlow/Keras CNN model.
+
+Return a structured JSON response containing the predicted disease, confidence score, and recommended next steps for the farmer.
+
+4. On-Device Edge AI (Optional but Preferred)
+
+Provide the implementation steps for converting the trained CNN into TensorFlow Lite or ONNX format.
+
+Write the client-side code required to run inference directly on the mobile device to eliminate the need for an active API connection.
+
+5. UI/UX and State Management
+
+Outline the state management approach (e.g., Redux, Zustand, or Context API) to handle loading states, prediction history, and error handling when the ML model fails to process an image.
+
+Provide the code for a cleanly designed "Results" component that visualizes the AI's confidence score and presents actionable insights.
+
+Ensure the code is production-ready, well-commented, and includes necessary imports. Focus on hard engineering logic and robust error handling rather than just soft conceptual overviews.

@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { useState, useEffect } from "react";
 import { SpendingForecastChart } from "@/components/spending-forecast-chart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/card";
-import { Alert, AlertTitle, AlertDescription } from "@/components/alert";
 import { Info } from "lucide-react";
 
 export default function ForecastPage() {
@@ -47,13 +46,15 @@ export default function ForecastPage() {
         </p>
       </div>
 
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Data-Driven Predictions</AlertTitle>
-        <AlertDescription>
-          Our forecasting algorithm analyzes your spending history (past 90 days) to predict future spending patterns with confidence intervals.
-        </AlertDescription>
-      </Alert>
+      <div className="flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm">
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
+        <div>
+          <p className="font-semibold text-sky-950">Data-Driven Predictions</p>
+          <p className="mt-0.5 text-sky-700/80">
+            Our forecasting algorithm analyzes your spending history (past 90 days) to predict future spending patterns with confidence intervals.
+          </p>
+        </div>
+      </div>
 
       <SpendingForecastChart organizationId={orgId} />
 
