@@ -91,3 +91,11 @@ export interface FinancialHealthIndicators {
     totalHoldingCount: number;
   } | null;
 }
+
+export interface DuplicateCharge {
+  merchantName: string;
+  amountCents: number;
+  transactionIds: string[];
+  dates: string[];
+  confidence: number;
+}

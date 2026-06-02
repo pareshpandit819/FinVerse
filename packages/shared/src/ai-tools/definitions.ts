@@ -111,4 +111,20 @@ export const AI_TOOL_DEFINITIONS: Anthropic.Tool[] = [
       required: ["userId"],
     },
   },
+{
+  name: "find_duplicate_charges",
+  description:
+    "Identifies likely duplicate charges by comparing merchant name, amount, and transaction date proximity.",
+  input_schema: {
+    type: "object",
+    properties: {
+      userId: { type: "string" },
+      daysWindow: {
+        type: "number",
+        description: "Number of days within which repeated charges are considered possible duplicates.",
+      },
+    },
+    required: ["userId"],
+  },
+},
 ];

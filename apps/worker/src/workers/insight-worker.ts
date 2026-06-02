@@ -13,6 +13,7 @@ import {
   getGoalProgress,
   getNetWorthTrend,
   findAnomalousTransactions,
+  findDuplicateCharges,
   getPortfolioSummary,
   getFinancialHealthIndicators,
 } from "../lib/insight-tools.js";
@@ -35,7 +36,7 @@ Guidelines:
 
 For standard insight types, produce exactly one JSON object:
   { "type": "<insight_type>", "title": "<short title>", "body": "<2-4 sentences>", "severity": "info|warning|critical", "actionItems": ["<step>"] }
-  Valid types: spending_anomaly, subscription_audit, goal_pacing, savings_opportunity, budget_breach_forecast, portfolio_insight
+  Valid types: spending_anomaly, subscription_audit, goal_pacing, savings_opportunity, budget_breach_forecast, portfolio_insight, duplicate_charge
 
 For financial_health_report, produce exactly one JSON object:
   {
@@ -64,7 +65,6 @@ export function createInsightWorker(): Worker {
       const { organizationId, userId, insightType } = result.data;
       const log = logger.child({ jobId: job.id, organizationId, userId });
 
-      // Check daily token budget
       const todayStart = new Date();
       todayStart.setUTCHours(0, 0, 0, 0);
 
@@ -92,7 +92,6 @@ export function createInsightWorker(): Worker {
       let totalOutput = 0;
       let finalText = "";
 
-      // Agentic loop — Claude calls tools until it produces a final text response
       for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
         const response = await anthropic.messages.create({
           model: MODEL_ID,
@@ -116,7 +115,6 @@ export function createInsightWorker(): Worker {
 
         if (response.stop_reason !== "tool_use") break;
 
-        // Process tool calls
         const toolUseBlocks = response.content.filter(
           (b): b is Anthropic.ToolUseBlock => b.type === "tool_use"
         );
@@ -142,7 +140,6 @@ export function createInsightWorker(): Worker {
         return;
       }
 
-      // Extract JSON from Claude's response
       const parsed = extractInsightJson(finalText);
       if (!parsed) {
         log.warn({ finalText }, "Could not parse insight JSON from response — skipping save");
@@ -166,7 +163,7 @@ export function createInsightWorker(): Worker {
           promptHash,
           inputTokens: totalInput,
           outputTokens: totalOutput,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         },
       });
 
@@ -177,7 +174,7 @@ export function createInsightWorker(): Worker {
     },
     {
       connection: redis,
-      concurrency: 2, // limit concurrent Claude calls
+      concurrency: 2,
     }
   );
 }
@@ -205,12 +202,21 @@ async function executeTool(
       return getGoalProgress(organizationId, input["goalId"] as string | undefined);
 
     case "get_net_worth_trend":
-      return getNetWorthTrend(organizationId, input["period"] as "1m" | "3m" | "6m" | "1y" | "all");
+      return getNetWorthTrend(
+        organizationId,
+        input["period"] as "1m" | "3m" | "6m" | "1y" | "all"
+      );
 
     case "find_anomalous_transactions":
       return findAnomalousTransactions(
         organizationId,
         typeof input["thresholdMultiple"] === "number" ? input["thresholdMultiple"] : 3.0
+      );
+
+    case "find_duplicate_charges":
+      return findDuplicateCharges(
+        organizationId,
+        typeof input["daysWindow"] === "number" ? input["daysWindow"] : 3
       );
 
     case "get_portfolio_summary":
